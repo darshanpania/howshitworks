@@ -1,0 +1,22 @@
+{
+  "name": "howshitworks",
+  "version": "1.0.0",
+  "description": "Everyday appliances, shown from the inside in three.js",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "vite": "^5.4.21"
+  },
+  "dependencies": {
+    "three": "^0.128.0"
+  },
+  "private": true,
+  "type": "module"
+}

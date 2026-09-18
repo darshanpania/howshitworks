@@ -1,0 +1,28 @@
+:root {
+  --bg: #EEF1F4; --panel: #FFFFFF; --ink: #1A222B; --muted: #5E6B78; --line: #D5DBE2;
+  --copper: #C4703A; --brass: #D4A64A; --accent: #C4703A; --accent-ink: #FFFFFF;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F151B; --panel: #161E26; --ink: #E8ECF0; --muted: #8C98A4; --line: #26313C;
+    --copper: #D98B52; --brass: #E0B65C; --accent: #D98B52; --accent-ink: #0F151B;
+  }
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+}
+a { color: inherit; }
+.kicker {
+  font: 500 11px/1 "IBM Plex Mono", monospace; letter-spacing: .14em;
+  text-transform: uppercase; color: var(--muted);
+}
+.btn {
+  border: 1px solid var(--line); background: var(--panel); color: var(--ink);
+  padding: 8px 14px; border-radius: 6px; font: 500 13px "IBM Plex Sans", sans-serif; cursor: pointer;
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn:focus-visible, .step:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }

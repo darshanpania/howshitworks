@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>How Shit Works</title>
+  <meta name="description" content="Everyday electrical and mechanical appliances, shown from the inside in 3D.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/src/base.css">
+  <style>
+    .wrap { max-width: 960px; margin: 0 auto; padding: 48px 16px 64px; }
+    h1 { font: 800 clamp(40px, 8vw, 72px)/1 "Syne", sans-serif; margin: 12px 0 16px; letter-spacing: -.02em; }
+    .lede { max-width: 56ch; color: var(--muted); font-size: 17px; margin: 0 0 40px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+    .card {
+      display: block; text-decoration: none; background: var(--panel); border: 1px solid var(--line);
+      border-radius: 10px; padding: 20px; transition: border-color .15s;
+    }
+    .card:hover { border-color: var(--accent); }
+    .card .num { font: 500 12px "IBM Plex Mono", monospace; color: var(--copper); }
+    .card h2 { font: 700 22px/1.15 "Syne", sans-serif; margin: 8px 0 6px; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; }
+    .card.soon { opacity: .55; pointer-events: none; }
+    footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="kicker">Open it up</div>
+    <h1>How Shit Works</h1>
+    <p class="lede">Everyday appliances, taken apart in 3D. Each one is a short story: where the power comes in, what moves, and why it does the job. Drag to orbit, explode the parts, and step through.</p>
+
+    <div class="grid" id="list">
+      <a class="card" href="/appliances/ceiling-fan">
+        <div class="num">No. 01</div>
+        <h2>Ceiling Fan</h2>
+        <p>An outer-rotor induction motor, a capacitor to get it started, and three blades pitched at 11°.</p>
+      </a>
+      <a class="card soon" href="#">
+        <div class="num">No. 02</div>
+        <h2>Toaster</h2>
+        <p>Nichrome wires, a bimetal strip, and an electromagnet that holds the bread down. Coming next.</p>
+      </a>
+      <a class="card soon" href="#">
+        <div class="num">No. 03</div>
+        <h2>Door Lock</h2>
+        <p>Five pins, one shear line. Coming later.</p>
+      </a>
+    </div>
+
+    <footer>Built with three.js by <a href="https://darshanpania.me">Darshan Pania</a>. Source on <a href="https://github.com/darshanpania/howshitworks">GitHub</a>.</footer>
+  </main>
+</body>
+</html>
