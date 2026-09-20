@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { TOASTER_STORY } from './story.js';
 import { partOpacity } from './visual-state.js';
+import { TOASTER_LAYOUT } from './layout.js';
 
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -43,8 +44,8 @@ function box(size, mat, pos) { const mesh = new THREE.Mesh(new THREE.BoxGeometry
   shell.add(box([0.2, 2.35, 2.9], M.steel, new THREE.Vector3(2.4, 0, 0)));
   shell.add(box([4.6, 2.35, 0.2], M.steel, new THREE.Vector3(0, 0, -1.35)));
   const darkFace = box([4.6, 1.95, 0.08], M.dark, new THREE.Vector3(0, -0.05, 1.37)); shell.add(darkFace);
-  [-1.18, 1.18].forEach(x => {
-    const slot = box([1.25, 0.12, 2.1], M.dark, new THREE.Vector3(x, 1.3, 0)); shell.add(slot);
+  TOASTER_LAYOUT.slotZ.forEach(z => {
+    const slot = box([3.25, 0.12, 0.72], M.dark, new THREE.Vector3(0, 1.3, z)); shell.add(slot);
   });
   add('shell', shell, new THREE.Vector3(0, -0.75, 0), new THREE.Vector3(0, 0.2, -1.6));
 }
@@ -59,10 +60,10 @@ function box(size, mat, pos) { const mesh = new THREE.Mesh(new THREE.BoxGeometry
 const carriage = new THREE.Group();
 const bread = new THREE.Group();
 {
-  [-1.18, 1.18].forEach(x => {
-    const cradle = box([1.08, 0.12, 1.82], M.brass, new THREE.Vector3(x, 0.28, 0)); carriage.add(cradle);
-    const slice = box([0.9, 1.28, 0.22], M.bread, new THREE.Vector3(x, 1.02, 0));
-    slice.rotation.z = x < 0 ? 0.05 : -0.04; bread.add(slice);
+  TOASTER_LAYOUT.slotZ.forEach(z => {
+    const cradle = box([3.1, 0.12, 0.65], M.brass, new THREE.Vector3(0, 0.28, z)); carriage.add(cradle);
+    const slice = box(TOASTER_LAYOUT.breadSize, M.bread, new THREE.Vector3(0, 1.02, z));
+    slice.rotation.z = z < 0 ? 0.025 : -0.025; bread.add(slice);
   });
   carriage.add(box([3.35, 0.12, 0.2], M.brass, new THREE.Vector3(0, -0.02, -0.86)));
   add('carriage', carriage, new THREE.Vector3(0, 0.05, 0), new THREE.Vector3(0, 1.7, 0));
@@ -71,12 +72,12 @@ const bread = new THREE.Group();
 // Zig-zag nichrome elements sit either side of each slice.
 {
   const elements = new THREE.Group();
-  [-1.78, -0.58, 0.58, 1.78].forEach(x => {
-    const board = box([0.08, 1.58, 1.72], M.mica, new THREE.Vector3(x, 0.05, 0)); elements.add(board);
-    for (let y = -0.58; y <= 0.58; y += 0.24) {
+  TOASTER_LAYOUT.elementZ.forEach(z => {
+    const board = box([3.4, 1.58, 0.08], M.mica, new THREE.Vector3(0, 0.05, z)); elements.add(board);
+    for (let x = -1.2; x <= 1.2; x += 0.48) {
       const wire = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.026, 8, 14), M.wire);
       wire.userData.isHeatingWire = true;
-      wire.rotation.y = Math.PI / 2; wire.position.set(x + (x < 0 ? 0.08 : -0.08), y, 0); elements.add(wire);
+      wire.position.set(x, 0.05, z + (z < 0 ? 0.07 : -0.07)); elements.add(wire);
     }
   });
   add('elements', elements, new THREE.Vector3(0, -0.1, 0), new THREE.Vector3(0, -1.6, 0));
