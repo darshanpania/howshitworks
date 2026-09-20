@@ -151,6 +151,7 @@ function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   const width = canvas.clientWidth, height = canvas.clientHeight; if (canvas.width !== width * renderer.getPixelRatio() || canvas.height !== height * renderer.getPixelRatio()) { renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); }
   state.explode += (state.targetExplode - state.explode) * (reduced ? 1 : 0.09);
+  applyFocus();
   Object.entries(parts).forEach(([name, part]) => { const carriageLift = name === 'carriage' || name === 'bread' ? (state.down ? -1.25 : 0.35) : 0; part.group.position.copy(part.home).addScaledVector(part.offset, state.explode); part.group.position.y += carriageLift; });
   if (state.playing) state.toast += dt * (state.heat ? 0.24 + state.browning * 0.035 : -0.08); state.toast = THREE.MathUtils.clamp(state.toast, 0, 1);
   const breadColor = new THREE.Color(0xe4b874).lerp(new THREE.Color(0x754023), state.toast); parts.bread.meshes.filter(mesh => mesh.material.color).forEach(mesh => mesh.material.color.copy(breadColor));
