@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { TOASTER_STORY } from './story.js';
+import { partOpacity } from './visual-state.js';
 
 const canvas = document.querySelector('#c');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -36,10 +37,14 @@ function box(size, mat, pos) { const mesh = new THREE.Mesh(new THREE.BoxGeometry
 // Steel shell and slots.
 {
   const shell = new THREE.Group();
-  shell.add(box([4.8, 2.5, 2.7], M.steel, new THREE.Vector3(0, 0, 0)));
-  const darkFace = box([4.82, 2.1, 2.2], M.dark, new THREE.Vector3(0, 0.05, 1.36)); shell.add(darkFace);
+  shell.add(box([5.0, 0.2, 2.9], M.steel, new THREE.Vector3(0, -1.18, 0)));
+  shell.add(box([5.0, 0.2, 2.9], M.steel, new THREE.Vector3(0, 1.18, 0)));
+  shell.add(box([0.2, 2.35, 2.9], M.steel, new THREE.Vector3(-2.4, 0, 0)));
+  shell.add(box([0.2, 2.35, 2.9], M.steel, new THREE.Vector3(2.4, 0, 0)));
+  shell.add(box([4.6, 2.35, 0.2], M.steel, new THREE.Vector3(0, 0, -1.35)));
+  const darkFace = box([4.6, 1.95, 0.08], M.dark, new THREE.Vector3(0, -0.05, 1.37)); shell.add(darkFace);
   [-1.18, 1.18].forEach(x => {
-    const slot = box([1.15, 0.17, 2.05], M.dark, new THREE.Vector3(x, 1.34, 0)); shell.add(slot);
+    const slot = box([1.25, 0.12, 2.1], M.dark, new THREE.Vector3(x, 1.3, 0)); shell.add(slot);
   });
   add('shell', shell, new THREE.Vector3(0, -0.75, 0), new THREE.Vector3(0, 0.2, -1.6));
 }
@@ -52,23 +57,24 @@ function box(size, mat, pos) { const mesh = new THREE.Mesh(new THREE.BoxGeometry
 }
 // Carriage carries bread down between elements.
 const carriage = new THREE.Group();
+const bread = new THREE.Group();
 {
   [-1.18, 1.18].forEach(x => {
-    const cradle = box([1.12, 0.14, 1.9], M.brass, new THREE.Vector3(x, 0.28, 0)); carriage.add(cradle);
-    const slice = box([0.95, 1.35, 0.22], M.bread, new THREE.Vector3(x, 1.0, 0));
-    slice.rotation.z = x < 0 ? 0.05 : -0.04; carriage.add(slice);
+    const cradle = box([1.08, 0.12, 1.82], M.brass, new THREE.Vector3(x, 0.28, 0)); carriage.add(cradle);
+    const slice = box([0.9, 1.28, 0.22], M.bread, new THREE.Vector3(x, 1.02, 0));
+    slice.rotation.z = x < 0 ? 0.05 : -0.04; bread.add(slice);
   });
   carriage.add(box([3.35, 0.12, 0.2], M.brass, new THREE.Vector3(0, -0.02, -0.86)));
   add('carriage', carriage, new THREE.Vector3(0, 0.05, 0), new THREE.Vector3(0, 1.7, 0));
-  parts.bread = parts.carriage;
+  add('bread', bread, new THREE.Vector3(0, 0.05, 0), new THREE.Vector3(0, 1.7, 0));
 }
 // Zig-zag nichrome elements sit either side of each slice.
 {
   const elements = new THREE.Group();
   [-1.78, -0.58, 0.58, 1.78].forEach(x => {
-    const board = box([0.12, 1.65, 1.8], M.mica, new THREE.Vector3(x, 0.05, 0)); elements.add(board);
-    for (let y = -0.55; y <= 0.62; y += 0.29) {
-      const wire = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.036, 8, 14), M.wire);
+    const board = box([0.08, 1.58, 1.72], M.mica, new THREE.Vector3(x, 0.05, 0)); elements.add(board);
+    for (let y = -0.58; y <= 0.58; y += 0.24) {
+      const wire = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.026, 8, 14), M.wire);
       wire.userData.isHeatingWire = true;
       wire.rotation.y = Math.PI / 2; wire.position.set(x + (x < 0 ? 0.08 : -0.08), y, 0); elements.add(wire);
     }
@@ -97,8 +103,13 @@ const carriage = new THREE.Group();
   add('thermostat', thermostat, new THREE.Vector3(-1.35, -1.55, -0.65), new THREE.Vector3(-1.5, -0.8, -1));
 }
 {
-  const spring = new THREE.Mesh(new THREE.TorusKnotGeometry(0.28, 0.06, 40, 8, 2, 5), M.spring); spring.scale.y = 1.8;
-  add('spring', spring, new THREE.Vector3(0, -1.48, 0.6), new THREE.Vector3(0, -1.1, 1.3));
+  const points = [];
+  for (let i = 0; i <= 48; i++) {
+    const angle = i / 48 * Math.PI * 10;
+    points.push(new THREE.Vector3(Math.cos(angle) * 0.22, -0.72 + i / 48 * 1.35, Math.sin(angle) * 0.22));
+  }
+  const spring = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 96, 0.045, 8, false), M.spring);
+  add('spring', spring, new THREE.Vector3(0, -1.8, 0.75), new THREE.Vector3(0, -0.7, 1.25));
 }
 
 const state = { step: 0, explode: 0, targetExplode: 0, playing: true, browning: 3, toast: 0, focus: [], heat: false, down: false };
@@ -120,7 +131,7 @@ function applyFocus() {
   Object.entries(parts).forEach(([name, part]) => part.meshes.forEach(mesh => {
     if (!mesh.userData.material) mesh.userData.material = mesh.material.clone();
     const material = mesh.userData.material; mesh.material = material; material.transparent = true;
-    const hot = state.focus.includes(name); material.opacity = state.focus.length && !hot ? 0.28 : 1; material.depthWrite = material.opacity > 0.9;
+    const hot = state.focus.includes(name); material.opacity = partOpacity(name, state); material.depthWrite = material.opacity > 0.9;
     if (mesh.userData.isHeatingWire) material.emissive = new THREE.Color(state.heat ? 0xff4d18 : 0x000000);
     material.emissiveIntensity = state.heat && hot ? 1.25 : hot ? 0.18 : 0;
   }));
