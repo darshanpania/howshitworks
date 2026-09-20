@@ -1,7 +1,7 @@
 export const TOASTER_STORY = [
   { t: 'Power comes in from the wall', part: 'Cord · Plug', explode: 0, focus: ['cord'], heat: false, down: false,
     d: 'Mains electricity arrives through the cord. A typical toaster in India uses about 800 to 1,000 watts: enough power to make the thin heating wires glow in a few seconds.' },
-  { t: 'The lever lowers the bread', part: 'Lever · Carriage', explode: 0.18, focus: ['bread', 'carriage'], heat: false, down: true,
+  { t: 'The lever lowers the bread', part: 'Lever · Carriage', explode: 0.18, focus: ['lever', 'bread', 'carriage'], heat: false, down: true,
     d: 'Pushing the lever down lowers both slices into the slots. The carriage compresses a spring and closes the electrical contacts at the bottom of its travel.' },
   { t: 'An electromagnet holds it down', part: 'Electromagnet · Latch', explode: 0.42, focus: ['magnet'], heat: false, down: true,
     d: 'The lever does not stay down by itself. Current energises a small electromagnet, which pulls a steel latch tight and holds the spring-loaded carriage down.' },
@@ -9,7 +9,7 @@ export const TOASTER_STORY = [
     d: 'Nichrome resists electricity much more than copper wire. That resistance turns electrical energy into heat, bringing the zig-zag wires to roughly 600°C.' },
   { t: 'Infrared heat browns the bread', part: 'Radiant heat · Bread', explode: 0.34, focus: ['heat', 'bread'], heat: true, down: true,
     d: 'The glowing wire emits infrared radiation. The bread absorbs it, water escapes as steam, and the surface browns through the Maillard reaction.' },
-  { t: 'A bimetal thermostat opens the circuit', part: 'Bimetal thermostat', explode: 0.58, focus: ['thermostat'], heat: true, down: true,
+  { t: 'A bimetal thermostat opens the circuit', part: 'Bimetal thermostat', explode: 0.58, focus: ['thermostat'], heat: false, down: true,
     d: 'A strip made from two metals bends as it warms because the metals expand by different amounts. At the selected heat level, it trips the latch circuit off.' },
   { t: 'A spring pops the toast up', part: 'Spring · Carriage', explode: 0.2, focus: ['spring', 'carriage', 'bread'], heat: false, down: false,
     d: 'With the electromagnet off, the latch releases. The compressed spring lifts the carriage and toast, opening the high-current heating circuit at the same time.' },

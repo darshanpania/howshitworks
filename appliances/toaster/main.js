@@ -132,7 +132,9 @@ ui.prev.addEventListener('click', () => setStep(state.step - 1)); ui.next.addEve
 let drag;
 canvas.addEventListener('pointerdown', event => { drag = { x: event.clientX, y: event.clientY }; canvas.setPointerCapture(event.pointerId); });
 canvas.addEventListener('pointermove', event => { if (!drag) return; cam.theta -= (event.clientX - drag.x) * 0.006; cam.phi = THREE.MathUtils.clamp(cam.phi - (event.clientY - drag.y) * 0.006, 0.25, Math.PI - 0.25); drag = { x: event.clientX, y: event.clientY }; });
-canvas.addEventListener('pointerup', () => { drag = null; }); canvas.addEventListener('wheel', event => { event.preventDefault(); cam.r = THREE.MathUtils.clamp(cam.r + event.deltaY * 0.01, 5.5, 15); }, { passive: false });
+canvas.addEventListener('pointerup', () => { drag = null; });
+canvas.addEventListener('pointercancel', () => { drag = null; });
+canvas.addEventListener('wheel', event => { event.preventDefault(); cam.r = THREE.MathUtils.clamp(cam.r + event.deltaY * 0.01, 5.5, 15); }, { passive: false });
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;

@@ -20,7 +20,7 @@ test('toaster story explains the complete pop-up cycle in seven steps', () => {
 
 test('every toaster story step focuses existing model parts', () => {
   const partNames = new Set([
-    'cord', 'bread', 'carriage', 'magnet', 'elements', 'heat', 'thermostat', 'spring',
+    'cord', 'bread', 'carriage', 'lever', 'magnet', 'elements', 'heat', 'thermostat', 'spring',
   ]);
 
   for (const step of TOASTER_STORY) {
@@ -29,4 +29,9 @@ test('every toaster story step focuses existing model parts', () => {
       assert.ok(partNames.has(part), `${step.t} references ${part}`);
     }
   }
+});
+
+test('lever and thermostat steps show the correct electrical state', () => {
+  assert.deepEqual(TOASTER_STORY[1].focus, ['lever', 'bread', 'carriage']);
+  assert.equal(TOASTER_STORY[5].heat, false);
 });
