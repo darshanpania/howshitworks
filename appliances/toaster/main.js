@@ -45,7 +45,7 @@ function box(size, mat, pos) { const mesh = new THREE.Mesh(new THREE.BoxGeometry
   shell.add(box([4.6, 2.35, 0.2], M.steel, new THREE.Vector3(0, 0, -1.35)));
   const darkFace = box([4.6, 1.95, 0.08], M.dark, new THREE.Vector3(0, -0.05, 1.37)); shell.add(darkFace);
   TOASTER_LAYOUT.slotZ.forEach(z => {
-    const slot = box([3.25, 0.12, 0.72], M.dark, new THREE.Vector3(0, 1.3, z)); shell.add(slot);
+    const slot = box([TOASTER_LAYOUT.slotSize[0], 0.12, TOASTER_LAYOUT.slotSize[1]], M.dark, new THREE.Vector3(0, 1.3, z)); shell.add(slot);
   });
   add('shell', shell, new THREE.Vector3(0, -0.75, 0), new THREE.Vector3(0, 0.2, -1.6));
 }
@@ -74,11 +74,13 @@ const bread = new THREE.Group();
   const elements = new THREE.Group();
   TOASTER_LAYOUT.elementZ.forEach(z => {
     const board = box([3.4, 1.58, 0.08], M.mica, new THREE.Vector3(0, 0.05, z)); elements.add(board);
-    for (let x = -1.2; x <= 1.2; x += 0.48) {
-      const wire = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.026, 8, 14), M.wire);
-      wire.userData.isHeatingWire = true;
-      wire.position.set(x, 0.05, z + (z < 0 ? 0.07 : -0.07)); elements.add(wire);
-    }
+    TOASTER_LAYOUT.heatingY.forEach(y => {
+      for (let x = -1.2; x <= 1.2; x += 0.48) {
+        const wire = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.022, 8, 14), M.wire);
+        wire.userData.isHeatingWire = true;
+        wire.position.set(x, y, z + (z < 0 ? 0.07 : -0.07)); elements.add(wire);
+      }
+    });
   });
   add('elements', elements, new THREE.Vector3(0, -0.1, 0), new THREE.Vector3(0, -1.6, 0));
   parts.heat = parts.elements;
