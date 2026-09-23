@@ -21,7 +21,9 @@
     .card .num { font: 500 12px "IBM Plex Mono", monospace; color: var(--copper); }
     .card h2 { font: 700 22px/1.15 "Syne", sans-serif; margin: 8px 0 6px; }
     .card p { margin: 0; color: var(--muted); font-size: 14px; }
-    .card.soon { opacity: .55; pointer-events: none; }
+    .card.soon { opacity: .6; border-style: dashed; }
+    .card.soon:hover { border-color: var(--line); }
+    .section { font: 500 11px/1 "IBM Plex Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 48px 0 16px; }
     footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
   </style>
 </head>
@@ -42,11 +44,45 @@
         <h2>Toaster</h2>
         <p>Nichrome wires, a bimetal strip, and an electromagnet that holds the bread down.</p>
       </a>
-      <a class="card soon" href="#">
+    </div>
+
+    <h2 class="section">Coming soon</h2>
+    <div class="grid" id="soon">
+      <div class="card soon">
         <div class="num">No. 03</div>
         <h2>Door Lock</h2>
-        <p>Five pins, one shear line. Coming later.</p>
-      </a>
+        <p>Five pins, one shear line. The right key lifts every pin to the same height.</p>
+      </div>
+      <div class="card soon">
+        <div class="num">No. 04</div>
+        <h2>Espresso Machine</h2>
+        <p>A pump pushes water at 9 bar through 18 g of coffee in about 25 seconds.</p>
+      </div>
+      <div class="card soon">
+        <div class="num">No. 05</div>
+        <h2>Mixer Grinder</h2>
+        <p>A 750 W universal motor spins the blades at up to 18,000 rpm.</p>
+      </div>
+      <div class="card soon">
+        <div class="num">No. 06</div>
+        <h2>Pressure Cooker</h2>
+        <p>Trapped steam at about 1 bar extra pressure boils water at 120°C. The whistle lets the extra out.</p>
+      </div>
+      <div class="card soon">
+        <div class="num">No. 07</div>
+        <h2>Dishwasher</h2>
+        <p>Spray arms spin on water jets. A heater takes the water to 65°C, then a pump drains it.</p>
+      </div>
+      <div class="card soon">
+        <div class="num">No. 08</div>
+        <h2>Washing Machine · Top Load</h2>
+        <p>An agitator or pulsator at the bottom churns the clothes in an upright drum.</p>
+      </div>
+      <div class="card soon">
+        <div class="num">No. 09</div>
+        <h2>Washing Machine · Front Load</h2>
+        <p>A horizontal drum lifts clothes and drops them. Spin speed goes up to 1,400 rpm.</p>
+      </div>
     </div>
 
     <footer>Built with three.js by <a href="https://darshanpania.me">Darshan Pania</a>. Source on <a href="https://github.com/darshanpania/howshitworks">GitHub</a>.</footer>

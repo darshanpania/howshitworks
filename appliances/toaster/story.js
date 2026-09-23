@@ -6,7 +6,7 @@ export const TOASTER_STORY = [
   { t: 'An electromagnet holds it down', part: 'Electromagnet · Latch', explode: 0.42, focus: ['magnet'], heat: false, down: true,
     d: 'The lever does not stay down by itself. Current energises a small electromagnet, which pulls a steel latch tight and holds the spring-loaded carriage down.' },
   { t: 'Nichrome wire turns electricity into heat', part: 'Heating elements', explode: 0.56, focus: ['elements'], heat: true, down: true,
-    d: 'Nichrome resists electricity much more than copper wire. That resistance turns electrical energy into heat, bringing the zig-zag wires to roughly 600°C.' },
+    d: 'Nichrome resists electricity much more than copper wire. That resistance turns electrical energy into heat, bringing the coiled wires to roughly 600°C.' },
   { t: 'Infrared heat browns the bread', part: 'Radiant heat · Bread', explode: 0.34, focus: ['heat', 'bread'], heat: true, down: true,
     d: 'The glowing wire emits infrared radiation. The bread absorbs it, water escapes as steam, and the surface browns through the Maillard reaction.' },
   { t: 'A bimetal thermostat opens the circuit', part: 'Bimetal thermostat', explode: 0.58, focus: ['thermostat'], heat: false, down: true,
