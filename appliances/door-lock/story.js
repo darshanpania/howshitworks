@@ -1,0 +1,16 @@
+export const LOCK_STORY = [
+  { t: 'A plug turns inside a housing', part: 'Plug · Housing', explode: 0.35, focus: ['plug', 'housing'], cut: false, mode: 'rest', view: 'mid',
+    d: 'The keyhole is in a brass cylinder, the plug, 12.7 mm across. The plug sits in a fixed housing. To unlock the door, the plug must turn. The thin gap between plug and housing is the shear line.' },
+  { t: 'Five pin stacks block the gap', part: 'Key pins · Driver pins', explode: 0, focus: ['keyPins', 'drivers'], cut: true, mode: 'rest', view: 'pins',
+    d: 'Five holes go down through the housing and into the plug, 3.96 mm apart. Each hole has two pins: a key pin below and a driver pin above. With no key, every driver pin crosses the shear line, so the plug cannot turn.' },
+  { t: 'Springs push the pins down', part: 'Pin springs', explode: 0.4, focus: ['springs'], cut: true, mode: 'rest', view: 'pins',
+    d: 'A small spring sits on top of each driver pin. It pushes the stack down into the keyway. Take out the key, and the springs put every driver pin back across the gap.' },
+  { t: 'The key lifts each pin', part: 'Key', explode: 0, focus: ['key', 'keyPins'], cut: true, mode: 'insert', view: 'pins',
+    d: 'The slope at the key tip pushes each pin up as the key goes in. The pins ride up and down over the cuts. When the shoulder of the key touches the plug face, each pin rests in its own cut.' },
+  { t: 'Every gap meets the shear line', part: 'Shear line', explode: 0, focus: ['keyPins', 'drivers', 'key'], cut: true, mode: 'insert', view: 'pins',
+    d: 'Each key pin is as long as its cut is deep. So the right key lifts the top of every key pin to exactly the shear line. Each cut has 10 depths, 0.381 mm apart: that makes 100,000 possible keys for five pins.' },
+  { t: 'A wrong key leaves one pin across', part: 'Wrong key', explode: 0, focus: ['key', 'drivers'], cut: true, mode: 'wrong', view: 'pins',
+    d: 'This key has one cut 1.1 mm too deep. The third key pin drops too low, and its driver pin stays across the shear line. One pin is enough: the plug only rattles.' },
+  { t: 'The plug turns and throws the bolt', part: 'Tailpiece · Deadbolt', explode: 0, focus: ['plug', 'cam', 'bolt'], cut: true, mode: 'turn', view: 'all',
+    d: 'With the right key, the plug turns. The key pins turn with it; the driver pins stay in the housing. A flat tailpiece on the back of the plug swings a lever. The lever slides the bolt 25 mm into the door frame.' },
+];

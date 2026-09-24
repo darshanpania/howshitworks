@@ -1,0 +1,8 @@
+/* Page-specific styles for the door knob. Shared layout lives in /src/base.css. */
+.readout { position: absolute; top: 16px; right: 16px; margin: 0; display: grid; gap: 6px; padding: 10px 12px;
+  background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 8px; min-width: 150px; }
+.readout div { display: flex; justify-content: space-between; gap: 12px; }
+.readout dt { font: 500 11px/1.4 "IBM Plex Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.readout dd { margin: 0; font: 500 13px/1.4 "IBM Plex Mono", monospace; font-variant-numeric: tabular-nums; }
+.readout.open dd#r-door { color: var(--copper); }
+@media (max-width: 800px) { .readout { top: auto; bottom: 64px; right: 16px; } }
