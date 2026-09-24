@@ -1,277 +1,181 @@
-import * as THREE from "three";
+import * as THREE from 'three';
+import { createStage, addFloor } from '../../src/engine/stage.js';
+import { createParts } from '../../src/engine/parts.js';
+import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
+import { startLoop, reducedMotion } from '../../src/engine/loop.js';
+import { FAN_STORY } from './story.js';
 
-(function(){
-  // ---------- Story ----------
-  const STORY = [
-    {t:'Power comes in from the wall', part:'Regulator · Downrod', explode:0, focus:['rod'], cut:false,
-     d:'The regulator on the wall sets the voltage that reaches the fan. Less voltage means a weaker magnetic field, so the fan turns slower. The wires run up inside the downrod.'},
-    {t:'The capacitor makes a second phase', part:'Capacitor · Top cover', explode:0.35, focus:['cap'], cut:true,
-     d:'A single-phase supply cannot start a motor by itself. The capacitor (usually 2.5 µF) shifts the current in one coil by about 90°. Now the two coils act like a two-phase supply, which can start a spin.'},
-    {t:'The stator makes a rotating field', part:'Stator · Copper windings', explode:0.55, focus:['stator'], cut:true,
-     d:'The stator is fixed to the downrod and does not move. Its copper coils are wound around an iron core as 16 poles. The two out-of-phase currents make a magnetic field that rotates around the core. On 50 Hz mains, a 16-pole field turns at 375 rpm.'},
-    {t:'The rotor chases the field', part:'Rotor · Outer casing', explode:0.55, focus:['rotor'], cut:true,
-     d:'In a ceiling fan, the rotor is on the outside. It is a ring of aluminium bars around the stator. The rotating field induces currents in the bars, and those currents make their own field. The rotor gets pulled around, always a little slower than the field: about 350 rpm at full speed. This is an induction motor.'},
-    {t:'Bearings let the casing spin', part:'Ball bearings ×2', explode:0.8, focus:['bearTop','bearBot'], cut:true,
-     d:'Two ball bearings sit between the fixed shaft and the spinning casing. They carry the weight of the blades and keep the casing centred. Worn bearings are the usual cause of a wobbling or noisy fan.'},
-    {t:'The blades push air down', part:'Blades ×3', explode:0.2, focus:['blades'], cut:false,
-     d:'The blades bolt to the spinning casing. Each blade is tilted by 10° to 12°. As it sweeps around, the tilt pushes air down, the same way a screw pushes into wood. Three blades is the common count in India because it moves the most air for the least noise.'},
-    {t:'Air moves, you feel cooler', part:'Airflow', explode:0, focus:['blades'], cut:false, air:true,
-     d:'The fan does not cool the air. It moves the air past your skin, so sweat evaporates faster. Air goes down in the middle of the room and comes back up along the walls. At full speed a 1200 mm fan moves about 200 cubic metres per minute.'}
-  ];
+// ---------- Stage ----------
+const stage = createStage(document.getElementById('c'), {
+  fov: 38, camera: { theta: 0.6, phi: 1.2, r: 11, target: [0, -0.2, 0] }, zoom: [5, 16],
+});
+const { scene } = stage;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 0.9));
+const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(4,6,3); scene.add(key);
+const rim = new THREE.DirectionalLight(0xffe0c0, 0.4); rim.position.set(-5,2,-4); scene.add(rim);
+addFloor(stage, -3.2);
 
-  // ---------- Renderer ----------
-  const canvas = document.getElementById('c');
-  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});
-  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100);
-  const cam = {theta:0.6, phi:1.2, r:11, target:new THREE.Vector3(0,-0.2,0)};
+// ---------- Materials ----------
+const M = {
+  steel: new THREE.MeshStandardMaterial({color:0xB8BEC6, metalness:0.7, roughness:0.35}),
+  canopy: new THREE.MeshStandardMaterial({color:0xB8BEC6, metalness:0.7, roughness:0.35, side:THREE.DoubleSide}),
+  housing: new THREE.MeshStandardMaterial({color:0x8E97A2, metalness:0.6, roughness:0.4, transparent:true}),
+  copper: new THREE.MeshStandardMaterial({color:0xC4703A, metalness:0.8, roughness:0.35}),
+  iron: new THREE.MeshStandardMaterial({color:0x4A525B, metalness:0.5, roughness:0.7}),
+  alu: new THREE.MeshStandardMaterial({color:0xD5DAE0, metalness:0.7, roughness:0.3}),
+  blade: new THREE.MeshStandardMaterial({color:0x6B4E36, metalness:0.1, roughness:0.7}),
+  cap: new THREE.MeshStandardMaterial({color:0x2B3138, metalness:0.2, roughness:0.6}),
+  cover: new THREE.MeshStandardMaterial({color:0x8E97A2, metalness:0.6, roughness:0.4, side:THREE.DoubleSide}),
+  bearing: new THREE.MeshStandardMaterial({color:0xD4A64A, metalness:0.9, roughness:0.25}),
+  wire: new THREE.MeshStandardMaterial({color:0xC43A3A, roughness:0.6})
+};
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 0.9));
-  const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(4,6,3); scene.add(key);
-  const rim = new THREE.DirectionalLight(0xffe0c0, 0.4); rim.position.set(-5,2,-4); scene.add(rim);
+// ---------- Parts ----------
+const root = new THREE.Group(); scene.add(root);
+const spinner = new THREE.Group(); root.add(spinner); // everything that rotates
+const { add, update } = createParts(root);
 
-  const grid = new THREE.GridHelper(14, 14, 0x9aa5b1, 0x9aa5b1);
-  grid.position.y = -3.2; grid.material.transparent = true; grid.material.opacity = 0.18; scene.add(grid);
-
-  // ---------- Materials ----------
-  const M = {
-    steel: new THREE.MeshStandardMaterial({color:0xB8BEC6, metalness:0.7, roughness:0.35}),
-    canopy: new THREE.MeshStandardMaterial({color:0xB8BEC6, metalness:0.7, roughness:0.35, side:THREE.DoubleSide}),
-    housing: new THREE.MeshStandardMaterial({color:0x8E97A2, metalness:0.6, roughness:0.4, transparent:true}),
-    copper: new THREE.MeshStandardMaterial({color:0xC4703A, metalness:0.8, roughness:0.35}),
-    iron: new THREE.MeshStandardMaterial({color:0x4A525B, metalness:0.5, roughness:0.7}),
-    alu: new THREE.MeshStandardMaterial({color:0xD5DAE0, metalness:0.7, roughness:0.3}),
-    blade: new THREE.MeshStandardMaterial({color:0x6B4E36, metalness:0.1, roughness:0.7}),
-    cap: new THREE.MeshStandardMaterial({color:0x2B3138, metalness:0.2, roughness:0.6}),
-    cover: new THREE.MeshStandardMaterial({color:0x8E97A2, metalness:0.6, roughness:0.4, side:THREE.DoubleSide}),
-    bearing: new THREE.MeshStandardMaterial({color:0xD4A64A, metalness:0.9, roughness:0.25}),
-    wire: new THREE.MeshStandardMaterial({color:0xC43A3A, roughness:0.6})
-  };
-  Object.values(M).forEach(m => { m.userData.baseColor = m.color.getHex(); m.userData.baseOpacity = m.opacity; });
-
-  // ---------- Parts ----------
-  // Each part: {group, home:Vector3, explode:Vector3 (offset at full explode), spins:boolean}
-  const parts = {};
-  const root = new THREE.Group(); scene.add(root);
-  const spinner = new THREE.Group(); root.add(spinner); // everything that rotates
-
-  function add(name, mesh, home, explodeOffset, spins){
-    const g = new THREE.Group(); g.add(mesh); g.position.copy(home);
-    (spins ? spinner : root).add(g);
-    parts[name] = {g, home:home.clone(), off:explodeOffset.clone(), meshes:[]};
-    mesh.traverse(o => { if (o.isMesh) parts[name].meshes.push(o); });
-    return g;
+// Canopy + downrod (fixed)
+{
+  const g = new THREE.Group();
+  const canopy = new THREE.Mesh(new THREE.ConeGeometry(0.9, 0.5, 32, 1, true), M.canopy);
+  canopy.position.y = 3.0; canopy.rotation.x = Math.PI; g.add(canopy);
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 2.2, 24), M.steel);
+  rod.position.y = 1.8; g.add(rod);
+  const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.2, 8), M.wire);
+  wire.position.set(0.05, 1.8, 0.02); g.add(wire);
+  add('rod', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,1.2,0));
+}
+// Fixed shaft
+{
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.9, 24), M.steel);
+  add('shaft', shaft, new THREE.Vector3(0,0,0), new THREE.Vector3(0,0.6,0));
+}
+// Stator: iron core + copper coils (fixed)
+{
+  const g = new THREE.Group();
+  const core = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.7, 24), M.iron); g.add(core);
+  const N = 16; // poles
+  for (let i=0;i<N;i++){
+    const a = i/N*Math.PI*2;
+    const coil = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.06, 10, 20), M.copper);
+    coil.position.set(Math.cos(a)*0.62, 0, Math.sin(a)*0.62);
+    coil.lookAt(0,0,0); g.add(coil);
   }
-
-  // Canopy + downrod (fixed)
-  {
-    const g = new THREE.Group();
-    const canopy = new THREE.Mesh(new THREE.ConeGeometry(0.9, 0.5, 32, 1, true), M.canopy);
-    canopy.position.y = 3.0; canopy.rotation.x = Math.PI; g.add(canopy);
-    const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 2.2, 24), M.steel);
-    rod.position.y = 1.8; g.add(rod);
-    const wire = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.2, 8), M.wire);
-    wire.position.set(0.05, 1.8, 0.02); g.add(wire);
-    add('rod', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,1.2,0), false);
-  }
-  // Fixed shaft
-  {
-    const shaft = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 1.9, 24), M.steel);
-    add('shaft', shaft, new THREE.Vector3(0,0,0), new THREE.Vector3(0,0.6,0), false);
-  }
-  // Stator: iron core + copper coils (fixed)
-  {
-    const g = new THREE.Group();
-    const core = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.7, 24), M.iron); g.add(core);
-    const N = 16; // poles
-    for (let i=0;i<N;i++){
-      const a = i/N*Math.PI*2;
-      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.06, 10, 20), M.copper);
-      coil.position.set(Math.cos(a)*0.62, 0, Math.sin(a)*0.62);
-      coil.lookAt(0,0,0); g.add(coil);
-    }
-    add('stator', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0), false);
-  }
-  // Capacitor (fixed). It sits in the top cover above the motor, clear of the spinning casing.
-  {
-    const g = new THREE.Group();
-    const cover = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.85, 0.42, 40, 1, true), M.cover);
-    cover.position.y = 0.95; cover.userData.cutaway = true; g.add(cover);
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.46, 20), M.cap);
-    body.rotation.z = Math.PI/2; body.position.set(0.5, 0.86, 0); g.add(body);
-    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.145, 0.145, 0.06, 20), M.copper);
-    band.rotation.z = Math.PI/2; band.position.set(0.5, 0.86, 0); g.add(band);
-    [-0.05, 0.05].forEach(z => {
-      const lead = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.34, 8), M.wire);
-      lead.position.set(0.24, 0.72, z); lead.rotation.z = 0.9; g.add(lead);
-    });
-    add('cap', g, new THREE.Vector3(0,0,0), new THREE.Vector3(1.6,1.0,1.0), false);
-  }
-  // Bearings (fixed inner race; drawn as brass rings)
-  {
-    const top = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.07, 12, 32), M.bearing); top.rotation.x = Math.PI/2;
-    add('bearTop', top, new THREE.Vector3(0,0.52,0), new THREE.Vector3(0,1.0,0), false);
-    const bot = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.07, 12, 32), M.bearing); bot.rotation.x = Math.PI/2;
-    add('bearBot', bot, new THREE.Vector3(0,-0.52,0), new THREE.Vector3(0,-1.0,0), false);
-  }
-  // Rotor: aluminium bar ring + outer housing (spins)
-  {
-    const g = new THREE.Group();
-    const N = 24;
-    for (let i=0;i<N;i++){
-      const a = i/N*Math.PI*2;
-      const bar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.7, 0.08), M.alu);
-      bar.position.set(Math.cos(a)*0.95, 0, Math.sin(a)*0.95); bar.rotation.y = -a; g.add(bar);
-    }
-    const ringT = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.05, 8, 48), M.alu); ringT.rotation.x = Math.PI/2; ringT.position.y = 0.35; g.add(ringT);
-    const ringB = ringT.clone(); ringB.position.y = -0.35; g.add(ringB);
-    const shell = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.95, 48, 1, true), M.housing); g.add(shell);
-    const cap = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.05, 0.12, 48), M.housing); cap.position.y = -0.53; g.add(cap);
-    const lid = new THREE.Mesh(new THREE.RingGeometry(0.3, 1.15, 48), M.housing); lid.rotation.x = -Math.PI/2; lid.position.y = 0.475; g.add(lid);
-    add('rotor', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,-2.2,0), true);
-  }
-  // Blades (spin)
-  {
-    const g = new THREE.Group();
-    for (let i=0;i<3;i++){
-      const a = i/3*Math.PI*2;
-      const arm = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.16), M.steel); arm.position.x = 1.3;
-      const blade = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.03, 0.42), M.blade); blade.position.x = 2.85;
-      const pivot = new THREE.Group(); pivot.add(arm); pivot.add(blade);
-      blade.rotation.x = THREE.MathUtils.degToRad(11); // pitch
-      pivot.rotation.y = a; pivot.position.y = -0.05; g.add(pivot);
-    }
-    add('blades', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,-3.4,0), true);
-  }
-
-  // Airflow particles: down under the blades, out along the floor, up the walls, back in near the ceiling.
-  const AIR_N = 320, FLOOR = -3.1, CEIL = -0.3, R_IN = 3.0, R_OUT = 6.2;
-  const airGeo = new THREE.BufferGeometry();
-  const airPos = new Float32Array(AIR_N*3);
-  const airSeed = [];
-  for (let i=0;i<AIR_N;i++) airSeed.push({a: Math.random()*Math.PI*2, u: Math.random(), s: 0.7+Math.random()*0.6, j: Math.random()});
-  airGeo.setAttribute('position', new THREE.BufferAttribute(airPos, 3));
-  const air = new THREE.Points(airGeo, new THREE.PointsMaterial({color:0x5E8DC4, size:0.07, transparent:true, opacity:0.0, depthWrite:false}));
-  scene.add(air);
-  // u runs 0..1 around one loop of the room; returns [radius, y].
-  const DOWN = CEIL-FLOOR, OUT = R_OUT-R_IN, LOOP = 2*DOWN + 2*OUT;
-  function airPath(u, j){
-    let d = u*LOOP;
-    const rIn = j*R_IN;
-    if (d < DOWN) return [rIn, CEIL - d];
-    d -= DOWN; if (d < OUT) return [rIn + (R_OUT-rIn)*d/OUT, FLOOR + 0.15*j];
-    d -= OUT; if (d < DOWN) return [R_OUT - 0.3*j, FLOOR + d];
-    d -= DOWN; return [R_OUT - (R_OUT-rIn)*d/OUT, CEIL + 0.4 + 0.2*j];
-  }
-
-  // ---------- State ----------
-  const state = {step:0, explode:0, targetExplode:0, playing:true, speed:3, angle:0, airOn:false, cut:false, focus:[]};
-  const ui = {
-    play: document.getElementById('play'), explode: document.getElementById('explode'),
-    speed: document.getElementById('speed'), steps: document.getElementById('steps'),
-    prev: document.getElementById('prev'), next: document.getElementById('next')
-  };
-
-  STORY.forEach((s,i) => {
-    const b = document.createElement('button'); b.className='step'; b.id = 'step-'+i;
-    b.innerHTML = `<span class="n">0${i+1}</span><span><div class="t">${s.t}</div><div class="d">${s.d}</div><div class="part">${s.part}</div></span>`;
-    b.addEventListener('click', () => setStep(i));
-    ui.steps.appendChild(b);
+  add('stator', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0));
+}
+// Capacitor (fixed). It sits in the top cover above the motor, clear of the spinning casing.
+{
+  const g = new THREE.Group();
+  const cover = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.85, 0.42, 40, 1, true), M.cover);
+  cover.position.y = 0.95; cover.userData.cutaway = true; g.add(cover);
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.46, 20), M.cap);
+  body.rotation.z = Math.PI/2; body.position.set(0.5, 0.86, 0); g.add(body);
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.145, 0.145, 0.06, 20), M.copper);
+  band.rotation.z = Math.PI/2; band.position.set(0.5, 0.86, 0); g.add(band);
+  [-0.05, 0.05].forEach(z => {
+    const lead = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.34, 8), M.wire);
+    lead.position.set(0.24, 0.72, z); lead.rotation.z = 0.9; g.add(lead);
   });
-
-  function setStep(i, scroll=true){
-    state.step = (i + STORY.length) % STORY.length;
-    const s = STORY[state.step];
-    state.targetExplode = s.explode; ui.explode.value = Math.round(s.explode*100);
-    state.airOn = !!s.air; state.cut = s.cut; state.focus = s.focus;
-    document.querySelectorAll('.step').forEach((el,j) => el.classList.toggle('active', j===state.step));
-    const active = document.getElementById('step-'+state.step);
-    if (scroll) active.scrollIntoView({block:'nearest', behavior:'smooth'});
-    applyFocus();
+  add('cap', g, new THREE.Vector3(0,0,0), new THREE.Vector3(1.6,1.0,1.0));
+}
+// Bearings (fixed inner race; drawn as brass rings)
+{
+  const top = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.07, 12, 32), M.bearing); top.rotation.x = Math.PI/2;
+  add('bearTop', top, new THREE.Vector3(0,0.52,0), new THREE.Vector3(0,1.0,0));
+  const bot = new THREE.Mesh(new THREE.TorusGeometry(0.26, 0.07, 12, 32), M.bearing); bot.rotation.x = Math.PI/2;
+  add('bearBot', bot, new THREE.Vector3(0,-0.52,0), new THREE.Vector3(0,-1.0,0));
+}
+// Rotor: aluminium bar ring + outer housing (spins)
+{
+  const g = new THREE.Group();
+  const N = 24;
+  for (let i=0;i<N;i++){
+    const a = i/N*Math.PI*2;
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.7, 0.08), M.alu);
+    bar.position.set(Math.cos(a)*0.95, 0, Math.sin(a)*0.95); bar.rotation.y = -a; g.add(bar);
   }
-
-  function applyFocus(){
-    const focusOn = state.focus.length > 0;
-    Object.entries(parts).forEach(([name,p]) => {
-      const hot = state.focus.includes(name);
-      p.meshes.forEach(m => {
-        if (!m.userData.mat) { m.userData.mat = m.material.clone(); m.material = m.userData.mat; }
-        const mat = m.material, base = mat.userData.baseColor ?? mat.color.getHex();
-        mat.userData.baseColor = base;
-        mat.transparent = true;
-        let op = 1;
-        if (name==='rotor' && state.cut && !hot) op = 0.22;
-        if (m.userData.cutaway && (state.cut || hot)) op = 0.2;
-        if (focusOn && !hot) op = Math.min(op, 0.35);
-        mat.opacity = op;
-        mat.emissive = new THREE.Color(hot ? base : 0x000000);
-        mat.emissiveIntensity = hot ? 0.25 : 0;
-        mat.depthWrite = op > 0.9;
-      });
-    });
+  const ringT = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.05, 8, 48), M.alu); ringT.rotation.x = Math.PI/2; ringT.position.y = 0.35; g.add(ringT);
+  const ringB = ringT.clone(); ringB.position.y = -0.35; g.add(ringB);
+  const shell = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.15, 0.95, 48, 1, true), M.housing); g.add(shell);
+  const cap = new THREE.Mesh(new THREE.CylinderGeometry(1.15, 1.05, 0.12, 48), M.housing); cap.position.y = -0.53; g.add(cap);
+  const lid = new THREE.Mesh(new THREE.RingGeometry(0.3, 1.15, 48), M.housing); lid.rotation.x = -Math.PI/2; lid.position.y = 0.475; g.add(lid);
+  add('rotor', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,-2.2,0), spinner);
+}
+// Blades (spin)
+{
+  const g = new THREE.Group();
+  for (let i=0;i<3;i++){
+    const a = i/3*Math.PI*2;
+    const arm = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.06, 0.16), M.steel); arm.position.x = 1.3;
+    const blade = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.03, 0.42), M.blade); blade.position.x = 2.85;
+    const pivot = new THREE.Group(); pivot.add(arm); pivot.add(blade);
+    blade.rotation.x = THREE.MathUtils.degToRad(11); // pitch
+    pivot.rotation.y = a; pivot.position.y = -0.05; g.add(pivot);
   }
+  add('blades', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,-3.4,0), spinner);
+}
 
-  ui.play.addEventListener('click', () => { state.playing = !state.playing; ui.play.textContent = state.playing ? 'Pause' : 'Play'; });
-  ui.explode.addEventListener('input', e => { state.targetExplode = e.target.value/100; });
-  ui.speed.addEventListener('input', e => { state.speed = +e.target.value; });
-  ui.prev.addEventListener('click', () => setStep(state.step-1));
-  ui.next.addEventListener('click', () => setStep(state.step+1));
+// Airflow particles: down under the blades, out along the floor, up the walls, back in near the ceiling.
+const AIR_N = 320, FLOOR = -3.1, CEIL = -0.3, R_IN = 3.0, R_OUT = 6.2;
+const airGeo = new THREE.BufferGeometry();
+const airPos = new Float32Array(AIR_N*3);
+const airSeed = [];
+for (let i=0;i<AIR_N;i++) airSeed.push({a: Math.random()*Math.PI*2, u: Math.random(), s: 0.7+Math.random()*0.6, j: Math.random()});
+airGeo.setAttribute('position', new THREE.BufferAttribute(airPos, 3));
+const air = new THREE.Points(airGeo, new THREE.PointsMaterial({color:0x5E8DC4, size:0.07, transparent:true, opacity:0.0, depthWrite:false}));
+stage.scene.add(air);
+// u runs 0..1 around one loop of the room; returns [radius, y].
+const DOWN = CEIL-FLOOR, OUT = R_OUT-R_IN, LOOP = 2*DOWN + 2*OUT;
+function airPath(u, j){
+  let d = u*LOOP;
+  const rIn = j*R_IN;
+  if (d < DOWN) return [rIn, CEIL - d];
+  d -= DOWN; if (d < OUT) return [rIn + (R_OUT-rIn)*d/OUT, FLOOR + 0.15*j];
+  d -= OUT; if (d < DOWN) return [R_OUT - 0.3*j, FLOOR + d];
+  d -= DOWN; return [R_OUT - (R_OUT-rIn)*d/OUT, CEIL + 0.4 + 0.2*j];
+}
 
-  // Orbit (pointer drag + wheel)
-  let drag = null;
-  canvas.addEventListener('pointerdown', e => { drag = {x:e.clientX, y:e.clientY}; canvas.setPointerCapture(e.pointerId); });
-  canvas.addEventListener('pointermove', e => {
-    if (!drag) return;
-    cam.theta -= (e.clientX-drag.x)*0.006; cam.phi -= (e.clientY-drag.y)*0.006;
-    cam.phi = Math.max(0.2, Math.min(Math.PI-0.2, cam.phi)); drag = {x:e.clientX, y:e.clientY};
-  });
-  canvas.addEventListener('pointerup', () => drag = null);
-  canvas.addEventListener('pointercancel', () => drag = null);
-  canvas.addEventListener('wheel', e => { e.preventDefault(); cam.r = Math.max(5, Math.min(16, cam.r + e.deltaY*0.01)); }, {passive:false});
+// ---------- State ----------
+const state = {step:0, explode:0, targetExplode:0, playing:true, speed:3, angle:0, airOn:false, cut:false, focus:[]};
+const story = createStoryUI({
+  story: FAN_STORY, state,
+  onStep: s => { state.airOn = !!s.air; state.cut = s.cut; state.focus = s.focus; },
+});
+bindRange('speed', v => { state.speed = v; });
 
-  function resize(){
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    const pr = renderer.getPixelRatio();
-    if (canvas.width !== Math.floor(w*pr) || canvas.height !== Math.floor(h*pr)){
-      renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix();
+// Unfocused parts fade; in cutaway steps the rotor casing and top cover go glassy.
+const focusStyle = {
+  highlight: 0.25,
+  opacity(name, mesh, hot) {
+    let op = 1;
+    if (name==='rotor' && state.cut && !hot) op = 0.22;
+    if (mesh.userData.cutaway && (state.cut || hot)) op = 0.2;
+    if (state.focus.length && !hot) op = Math.min(op, 0.35);
+    return op;
+  },
+};
+
+// ---------- Frame ----------
+let spin = 0;
+startLoop(stage, dt => {
+  update(state, focusStyle, reducedMotion ? 1 : 0.08);
+  // spin: the casing spins up and coasts down instead of jumping
+  const targetSpin = state.playing ? state.speed * 2.2 : 0;
+  spin += (targetSpin - spin) * Math.min(1, dt * (reducedMotion ? 60 : 1.5));
+  state.angle += dt * spin;
+  spinner.rotation.y = state.angle;
+  // air
+  const targetOp = state.airOn ? 0.85 * Math.min(1, spin / 4) : 0;
+  air.material.opacity += (targetOp - air.material.opacity)*0.05;
+  if (air.material.opacity > 0.02){
+    const pos = air.geometry.attributes.position.array;
+    for (let i=0;i<AIR_N;i++){
+      const s = airSeed[i]; s.u = (s.u + dt * s.s * spin * 0.02) % 1;
+      const [r, y] = airPath(s.u, s.j);
+      pos[i*3] = Math.cos(s.a)*r; pos[i*3+1] = y; pos[i*3+2] = Math.sin(s.a)*r;
     }
+    air.geometry.attributes.position.needsUpdate = true;
   }
-
-  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let last = performance.now(), spin = 0;
-  function frame(now){
-    const dt = Math.min(0.05, (now-last)/1000); last = now;
-    resize();
-    // explode lerp
-    state.explode += (state.targetExplode - state.explode) * (reduce ? 1 : 0.08);
-    Object.values(parts).forEach(p => p.g.position.copy(p.home).addScaledVector(p.off, state.explode));
-    // spin
-    const targetSpin = state.playing ? state.speed * 2.2 : 0;
-    spin += (targetSpin - spin) * Math.min(1, dt * (reduce ? 60 : 1.5));
-    state.angle += dt * spin;
-    spinner.rotation.y = state.angle;
-    // air
-    const targetOp = state.airOn ? 0.85 * Math.min(1, spin / 4) : 0;
-    air.material.opacity += (targetOp - air.material.opacity)*0.05;
-    if (air.material.opacity > 0.02){
-      const pos = air.geometry.attributes.position.array;
-      for (let i=0;i<AIR_N;i++){
-        const s = airSeed[i]; s.u = (s.u + dt * s.s * spin * 0.02) % 1;
-        const [r, y] = airPath(s.u, s.j);
-        pos[i*3] = Math.cos(s.a)*r; pos[i*3+1] = y; pos[i*3+2] = Math.sin(s.a)*r;
-      }
-      air.geometry.attributes.position.needsUpdate = true;
-    }
-    // camera
-    camera.position.set(
-      cam.target.x + cam.r*Math.sin(cam.phi)*Math.sin(cam.theta),
-      cam.target.y + cam.r*Math.cos(cam.phi),
-      cam.target.z + cam.r*Math.sin(cam.phi)*Math.cos(cam.theta));
-    camera.lookAt(cam.target);
-    renderer.render(scene, camera);
-    requestAnimationFrame(frame);
-  }
-  setStep(0, false);
-  requestAnimationFrame(frame);
-})();
+});
+story.setStep(0, false);

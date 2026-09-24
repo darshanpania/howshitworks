@@ -1,24 +1,18 @@
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { createStage, addFloor } from '../../src/engine/stage.js';
+import { createParts } from '../../src/engine/parts.js';
+import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
+import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
 import { TOASTER_STORY } from './story.js';
 import { partOpacity } from './visual-state.js';
 import { TOASTER_LAYOUT } from './layout.js';
 
-// ---------- Renderer, camera, light ----------
-const canvas = document.querySelector('#c');
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.outputEncoding = THREE.sRGBEncoding;
-renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.0;
-renderer.shadowMap.enabled = true;
-renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-const scene = new THREE.Scene();
-scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
-const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 100);
-const cam = { theta: 0.75, phi: 1.12, r: 11.5, target: new THREE.Vector3(0, -0.35, 0) };
-
+// ---------- Stage and light ----------
+const stage = createStage(document.querySelector('#c'), {
+  fov: 36, pbr: true, camera: { theta: 0.75, phi: 1.12, r: 11.5, target: [0, -0.35, 0] }, zoom: [6, 16], phiLimit: 0.25,
+});
+const { scene } = stage;
 scene.add(new THREE.HemisphereLight(0xffffff, 0x27313a, 0.45));
 const key = new THREE.DirectionalLight(0xfff3df, 1.6); key.position.set(5, 8, 5);
 key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 4; key.shadow.bias = -0.0005;
@@ -27,9 +21,7 @@ scene.add(key);
 const rim = new THREE.DirectionalLight(0x8db4e5, 0.6); rim.position.set(-5, 3, -4); scene.add(rim);
 
 const FLOOR_Y = -2.2;
-const grid = new THREE.GridHelper(13, 13, 0x9aa5b1, 0x9aa5b1); grid.position.y = FLOOR_Y; grid.material.transparent = true; grid.material.opacity = 0.16; scene.add(grid);
-const floor = new THREE.Mesh(new THREE.PlaneGeometry(14, 14), new THREE.ShadowMaterial({ opacity: 0.16 }));
-floor.rotation.x = -Math.PI / 2; floor.position.y = FLOOR_Y + 0.001; floor.receiveShadow = true; scene.add(floor);
+addFloor(stage, FLOOR_Y, { size: 13, opacity: 0.16 });
 
 // ---------- Materials ----------
 // A soft, speckled crumb texture so the bread reads as bread, not as a yellow box.
@@ -68,14 +60,8 @@ const linear = hex => new THREE.Color(hex).convertSRGBToLinear();
 Object.values(M).forEach(material => material.color.convertSRGBToLinear());
 
 // ---------- Parts ----------
-const parts = {};
 const root = new THREE.Group(); scene.add(root);
-function add(name, object, home, offset) {
-  const group = new THREE.Group(); group.add(object); group.position.copy(home); root.add(group);
-  const meshes = []; object.traverse(item => { if (item.isMesh) { meshes.push(item); item.castShadow = !item.userData.noShadow; item.receiveShadow = !item.userData.noShadow; } });
-  parts[name] = { group, home: home.clone(), offset: offset.clone(), meshes };
-  return group;
-}
+const { parts, add, update } = createParts(root, { shadows: true });
 function box(size, mat, pos, radius = 0) {
   const geo = radius > 0 ? new RoundedBoxGeometry(...size, 3, radius) : new THREE.BoxGeometry(...size);
   const mesh = new THREE.Mesh(geo, mat); mesh.position.copy(pos); return mesh;
@@ -261,61 +247,34 @@ const steam = new THREE.Points(steamGeo, new THREE.PointsMaterial({ color: 0xfff
 scene.add(steam);
 
 // ---------- State and UI ----------
-const state = { step: 0, explode: 0, targetExplode: 0, playing: true, browning: 3, toast: 0, focus: [], heat: false, down: false, glow: 0, lift: 0, liftV: 0 };
-const ui = { play: document.querySelector('#play'), explode: document.querySelector('#explode'), browning: document.querySelector('#browning'), steps: document.querySelector('#steps'), prev: document.querySelector('#prev'), next: document.querySelector('#next') };
-
-TOASTER_STORY.forEach((story, index) => {
-  const button = document.createElement('button'); button.className = 'step'; button.id = `step-${index}`;
-  button.innerHTML = `<span class="n">0${index + 1}</span><span><div class="t">${story.t}</div><div class="d">${story.d}</div><div class="part">${story.part}</div></span>`;
-  button.addEventListener('click', () => setStep(index)); ui.steps.append(button);
-});
-function setStep(index, scroll = true) {
-  state.step = (index + TOASTER_STORY.length) % TOASTER_STORY.length;
-  const story = TOASTER_STORY[state.step]; state.targetExplode = story.explode; state.focus = story.focus; state.heat = story.heat; state.down = story.down;
-  ui.explode.value = String(Math.round(story.explode * 100));
-  document.querySelectorAll('.step').forEach((item, i) => item.classList.toggle('active', i === state.step));
-  if (scroll) document.querySelector(`#step-${state.step}`).scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-  applyFocus();
-}
 // "heat" in the story is the radiant heat of the elements, so it focuses the same meshes.
 const ALIAS = { heat: 'elements' };
-const warmWire = linear(0x8a1a05), hotWire = linear(0xff6a1a), coolWire = new THREE.Color(0x000000), wireColor = new THREE.Color();
-function applyFocus() {
-  const focus = state.focus.map(name => ALIAS[name] || name);
-  if (state.glow < 0.5) wireColor.copy(coolWire).lerp(warmWire, state.glow * 2); else wireColor.copy(warmWire).lerp(hotWire, state.glow * 2 - 1);
-  Object.entries(parts).forEach(([name, part]) => {
-    const hot = focus.includes(name), partAlpha = partOpacity(name, { explode: state.explode, focus });
-    part.meshes.forEach(mesh => {
-      const opacity = mesh.userData.translucent ? partAlpha * 0.45 : partAlpha; // mica lets you see the coils behind it
-      if (!mesh.userData.ownMaterial) { mesh.material = Array.isArray(mesh.material) ? mesh.material.map(m => m.clone()) : mesh.material.clone(); mesh.userData.ownMaterial = true; }
-      [].concat(mesh.material).forEach(material => {
-        material.transparent = opacity < 0.99; material.opacity = opacity; material.depthWrite = opacity > 0.9;
-        if (mesh.userData.isHeatingWire) { material.emissive.copy(wireColor); material.emissiveIntensity = 1 + state.glow * 0.6; }
-        else { material.emissive.copy(hot ? material.color : coolWire); material.emissiveIntensity = hot ? 0.12 : 0; }
-      });
-    });
-  });
-}
-ui.play.addEventListener('click', () => { state.playing = !state.playing; ui.play.textContent = state.playing ? 'Pause' : 'Play'; });
-ui.explode.addEventListener('input', event => { state.targetExplode = event.target.value / 100; });
-ui.browning.addEventListener('input', event => { state.browning = Number(event.target.value); });
-ui.prev.addEventListener('click', () => setStep(state.step - 1)); ui.next.addEventListener('click', () => setStep(state.step + 1));
-let drag;
-canvas.addEventListener('pointerdown', event => { drag = { x: event.clientX, y: event.clientY }; canvas.setPointerCapture(event.pointerId); });
-canvas.addEventListener('pointermove', event => { if (!drag) return; cam.theta -= (event.clientX - drag.x) * 0.006; cam.phi = THREE.MathUtils.clamp(cam.phi - (event.clientY - drag.y) * 0.006, 0.25, Math.PI - 0.25); drag = { x: event.clientX, y: event.clientY }; });
-canvas.addEventListener('pointerup', () => { drag = null; });
-canvas.addEventListener('pointercancel', () => { drag = null; });
-canvas.addEventListener('wheel', event => { event.preventDefault(); cam.r = THREE.MathUtils.clamp(cam.r + event.deltaY * 0.01, 6, 16); }, { passive: false });
+const state = { step: 0, explode: 0, targetExplode: 0, playing: true, browning: 3, toast: 0, focus: [], radiant: false, heat: false, down: false, glow: 0, lift: 0, liftV: 0 };
+const story = createStoryUI({
+  story: TOASTER_STORY, state,
+  onStep: s => {
+    state.focus = s.focus.map(name => ALIAS[name] || name); state.radiant = s.focus.includes('heat');
+    state.heat = s.heat; state.down = s.down;
+  },
+});
+bindRange('browning', v => { state.browning = v; });
+
+const warmWire = linear(0x8a1a05), hotWire = linear(0xff6a1a), black = new THREE.Color(0x000000), wireColor = new THREE.Color();
+const focusStyle = {
+  highlight: 0.12,
+  // Mica lets you see the coils behind it.
+  opacity: (name, mesh) => partOpacity(name, state) * (mesh.userData.translucent ? 0.45 : 1),
+  decorate(material, { mesh, hot }) {
+    if (mesh.userData.isHeatingWire) { material.emissive.copy(wireColor); material.emissiveIntensity = 1 + state.glow * 0.6; }
+    else { material.emissive.copy(hot ? material.color : black); material.emissiveIntensity = hot ? 0.12 : 0; }
+  },
+};
 
 // ---------- Frame ----------
-const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches; let last = performance.now();
 const rawCrumb = linear(0xf1d9a6), toastCrumb = linear(0x8a4a22), rawCrust = linear(0xc98a4a), toastCrust = linear(0x3e1f0e);
-function frame(now) {
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  const width = canvas.clientWidth, height = canvas.clientHeight, pr = renderer.getPixelRatio();
-  if (canvas.width !== Math.floor(width * pr) || canvas.height !== Math.floor(height * pr)) { renderer.setSize(width, height, false); camera.aspect = width / height; camera.updateProjectionMatrix(); }
-  state.explode += (state.targetExplode - state.explode) * (reduced ? 1 : 0.09);
-  applyFocus();
+startLoop(stage, (dt, now) => {
+  if (state.glow < 0.5) wireColor.copy(black).lerp(warmWire, state.glow * 2); else wireColor.copy(warmWire).lerp(hotWire, state.glow * 2 - 1);
+  update(state, focusStyle, reduced ? 1 : 0.09);
 
   // Carriage: eases down against the spring, then springs up with a small bounce.
   const liftTarget = state.down ? -LIFT : 0;
@@ -323,11 +282,9 @@ function frame(now) {
   else if (state.down) { state.lift += (liftTarget - state.lift) * Math.min(1, dt * 6); state.liftV = 0; }
   else { state.liftV += (140 * (liftTarget - state.lift) - 9 * state.liftV) * dt; state.lift += state.liftV * dt; }
   const liftUp = state.lift + LIFT; // 0 when down, LIFT when up
-  Object.entries(parts).forEach(([name, part]) => {
-    part.group.position.copy(part.home).addScaledVector(part.offset, state.explode);
-    if (name === 'carriage' || name === 'bread') part.group.position.y += liftUp;
-    if (name === 'lever') part.group.position.y += state.lift;
-  });
+  parts.carriage.group.position.y += liftUp;
+  parts.bread.group.position.y += liftUp;
+  parts.lever.group.position.y += state.lift;
   const springLength = Math.max(0.2, HEAT_Y + liftUp - breadH / 2 - 0.08 - springBase);
   if (Math.abs(springLength - spring.userData.length) > 0.01) { spring.geometry.dispose(); spring.geometry = springGeometry(springLength); spring.userData.length = springLength; }
 
@@ -335,7 +292,7 @@ function frame(now) {
   const glowTarget = state.heat && state.playing ? 1 : 0;
   state.glow += (glowTarget - state.glow) * Math.min(1, dt * (reduced ? 60 : glowTarget ? 1.8 : 1.2));
   slotLights.forEach(light => { light.intensity = state.glow * 2.2; });
-  const irFocus = state.focus.includes('heat') ? 0.32 : 0.1;
+  const irFocus = state.radiant ? 0.32 : 0.1;
   irPlanes.forEach(plane => { plane.material.opacity = state.glow * irFocus * (0.85 + Math.sin(now / 140) * 0.15); });
 
   if (state.playing) state.toast += dt * (state.heat ? 0.1 + state.browning * 0.03 : 0); state.toast = THREE.MathUtils.clamp(state.toast, 0, state.browning / 5);
@@ -359,6 +316,5 @@ function frame(now) {
     steamGeo.attributes.position.needsUpdate = true;
   }
 
-  camera.position.set(cam.target.x + cam.r * Math.sin(cam.phi) * Math.sin(cam.theta), cam.target.y + cam.r * Math.cos(cam.phi), cam.target.z + cam.r * Math.sin(cam.phi) * Math.cos(cam.theta)); camera.lookAt(cam.target); renderer.render(scene, camera); requestAnimationFrame(frame);
-}
-setStep(0, false); requestAnimationFrame(frame);
+});
+story.setStep(0, false);
