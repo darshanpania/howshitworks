@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
+import { trackOnce } from '../analytics.js';
 
 // Renderer, scene, camera, orbit controls and resize for one appliance canvas.
 // pbr: true turns on linear colour, tone mapping, soft shadows and room reflections.
@@ -59,14 +60,15 @@ export function attachOrbit(canvas, cam, { zoom: [minR, maxR] = [5, 16], phiLimi
     if (!last) return;
     const now = { x: e.clientX, y: e.clientY };
     pointers.set(e.pointerId, now);
-    if (pinch && pointers.size === 2) { cam.r = clampR(pinch.r * pinch.d / Math.max(1, spread())); return; }
+    if (pinch && pointers.size === 2) { cam.r = clampR(pinch.r * pinch.d / Math.max(1, spread())); trackOnce('model_zoomed', { input: 'pinch' }); return; }
+    trackOnce('model_orbited', { input: e.pointerType });
     cam.theta -= (now.x - last.x) * 0.006;
     cam.phi = Math.max(phiLimit, Math.min(Math.PI - phiLimit, cam.phi - (now.y - last.y) * 0.006));
   });
   const end = e => { pointers.delete(e.pointerId); if (pointers.size < 2) pinch = null; };
   canvas.addEventListener('pointerup', end);
   canvas.addEventListener('pointercancel', end);
-  canvas.addEventListener('wheel', e => { e.preventDefault(); cam.r = clampR(cam.r + e.deltaY * 0.01); }, { passive: false });
+  canvas.addEventListener('wheel', e => { e.preventDefault(); cam.r = clampR(cam.r + e.deltaY * 0.01); trackOnce('model_zoomed', { input: 'wheel' }); }, { passive: false });
 }
 
 // Faint floor grid, plus a shadow catcher when the stage renders shadows.
