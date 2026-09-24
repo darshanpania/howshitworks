@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Pressure Cooker · How Shit Works</title>
+  <meta name="description" content="How a pressure cooker works: a sealed lid, trapped steam, a 120°C boiling point, the whistle weight and the safety valve, in 8 steps.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/src/base.css">
+  <link rel="stylesheet" href="./page.css">
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <canvas id="c"></canvas>
+    <div class="brand"><div class="kicker"><a href="/">How Shit Works</a> · No. 03</div><h1>Pressure Cooker</h1></div>
+    <dl class="readout" id="readout" aria-live="off">
+      <div><dt>Pressure</dt><dd id="r-pressure">+0.00 bar</dd></div>
+      <div><dt>Water</dt><dd id="r-temp">25°C</dd></div>
+      <div><dt>Whistles</dt><dd id="r-whistles">0</dd></div>
+    </dl>
+    <div class="hud">
+      <button class="btn primary" id="play">Pause</button>
+      <label for="explode">Explode</label><input type="range" id="explode" min="0" max="100" value="0">
+      <label for="flame">Flame</label><input type="range" id="flame" min="1" max="5" value="3">
+    </div>
+  </div>
+  <aside class="panel">
+    <div class="panel-head"><div class="kicker">The story in 8 steps</div><div class="hint">Drag to orbit. Tap a step to focus a part.</div></div>
+    <div class="steps" id="steps"></div>
+    <div class="panel-foot"><button class="btn" id="prev">Back</button><button class="btn" id="next">Next</button></div>
+  </aside>
+</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
