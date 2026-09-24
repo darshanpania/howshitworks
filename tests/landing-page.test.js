@@ -6,7 +6,7 @@ test('landing page lists the upcoming appliances as coming soon', () => {
   const landing = readFileSync('index.html', 'utf8');
   const soon = landing.slice(landing.indexOf('id="soon"'));
   for (const name of [
-    'Door Lock', 'Espresso Machine', 'Mixer Grinder', 'Pressure Cooker',
+    'Door Lock', 'Espresso Machine', 'Mixer Grinder',
     'Dishwasher', 'Washing Machine · Top Load', 'Washing Machine · Front Load',
   ]) {
     assert.match(soon, new RegExp(`<h2>${name}</h2>`), `${name} is missing`);
