@@ -14,3 +14,6 @@ export const TOASTER_STORY = [
   { t: 'A spring pops the toast up', part: 'Spring · Carriage', explode: 0.2, focus: ['spring', 'carriage', 'bread'], heat: false, down: false,
     d: 'With the electromagnet off, the latch releases. The compressed spring lifts the carriage and toast, opening the high-current heating circuit at the same time.' },
 ];
+
+// "heat" in the story is the radiant heat of the elements, so it focuses the same meshes.
+export const TOASTER_ALIASES = { heat: 'elements' };

@@ -3,6 +3,8 @@ import { createStage, addFloor } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { startLoop, reducedMotion } from '../../src/engine/loop.js';
+import { createMaterials } from '../../src/kit/materials.js';
+import { createParticles } from '../../src/kit/effects.js';
 import { FAN_STORY } from './story.js';
 
 // ---------- Stage ----------
@@ -16,19 +18,19 @@ const rim = new THREE.DirectionalLight(0xffe0c0, 0.4); rim.position.set(-5,2,-4)
 addFloor(stage, -3.2);
 
 // ---------- Materials ----------
-const M = {
-  steel: new THREE.MeshStandardMaterial({color:0xB8BEC6, metalness:0.7, roughness:0.35}),
-  canopy: new THREE.MeshStandardMaterial({color:0xB8BEC6, metalness:0.7, roughness:0.35, side:THREE.DoubleSide}),
-  housing: new THREE.MeshStandardMaterial({color:0x8E97A2, metalness:0.6, roughness:0.4, transparent:true}),
-  copper: new THREE.MeshStandardMaterial({color:0xC4703A, metalness:0.8, roughness:0.35}),
-  iron: new THREE.MeshStandardMaterial({color:0x4A525B, metalness:0.5, roughness:0.7}),
-  alu: new THREE.MeshStandardMaterial({color:0xD5DAE0, metalness:0.7, roughness:0.3}),
-  blade: new THREE.MeshStandardMaterial({color:0x6B4E36, metalness:0.1, roughness:0.7}),
-  cap: new THREE.MeshStandardMaterial({color:0x2B3138, metalness:0.2, roughness:0.6}),
-  cover: new THREE.MeshStandardMaterial({color:0x8E97A2, metalness:0.6, roughness:0.4, side:THREE.DoubleSide}),
-  bearing: new THREE.MeshStandardMaterial({color:0xD4A64A, metalness:0.9, roughness:0.25}),
-  wire: new THREE.MeshStandardMaterial({color:0xC43A3A, roughness:0.6})
-};
+const M = createMaterials({
+  steel: 'brushed',
+  canopy: { look: 'brushed', side: THREE.DoubleSide },
+  housing: { color: 0x8E97A2, metalness: 0.6, roughness: 0.4, transparent: true },
+  copper: { color: 0xC4703A, metalness: 0.8, roughness: 0.35 },
+  iron: { color: 0x4A525B, metalness: 0.5, roughness: 0.7 },
+  alu: 'aluminium',
+  blade: { color: 0x6B4E36, metalness: 0.1, roughness: 0.7 },
+  cap: { color: 0x2B3138, metalness: 0.2, roughness: 0.6 },
+  cover: { color: 0x8E97A2, metalness: 0.6, roughness: 0.4, side: THREE.DoubleSide },
+  bearing: { color: 0xD4A64A, metalness: 0.9, roughness: 0.25 },
+  wire: 'wire',
+});
 
 // ---------- Parts ----------
 const root = new THREE.Group(); scene.add(root);
@@ -118,13 +120,10 @@ const { add, update } = createParts(root);
 
 // Airflow particles: down under the blades, out along the floor, up the walls, back in near the ceiling.
 const AIR_N = 320, FLOOR = -3.1, CEIL = -0.3, R_IN = 3.0, R_OUT = 6.2;
-const airGeo = new THREE.BufferGeometry();
-const airPos = new Float32Array(AIR_N*3);
-const airSeed = [];
-for (let i=0;i<AIR_N;i++) airSeed.push({a: Math.random()*Math.PI*2, u: Math.random(), s: 0.7+Math.random()*0.6, j: Math.random()});
-airGeo.setAttribute('position', new THREE.BufferAttribute(airPos, 3));
-const air = new THREE.Points(airGeo, new THREE.PointsMaterial({color:0x5E8DC4, size:0.07, transparent:true, opacity:0.0, depthWrite:false}));
-stage.scene.add(air);
+const air = createParticles(stage.scene, AIR_N, {
+  color: 0x5E8DC4, size: 0.07,
+  seed: () => ({a: Math.random()*Math.PI*2, u: Math.random(), s: 0.7+Math.random()*0.6, j: Math.random()}),
+});
 // u runs 0..1 around one loop of the room; returns [radius, y].
 const DOWN = CEIL-FLOOR, OUT = R_OUT-R_IN, LOOP = 2*DOWN + 2*OUT;
 function airPath(u, j){
@@ -167,15 +166,13 @@ startLoop(stage, dt => {
   spinner.rotation.y = state.angle;
   // air
   const targetOp = state.airOn ? 0.85 * Math.min(1, spin / 4) : 0;
-  air.material.opacity += (targetOp - air.material.opacity)*0.05;
-  if (air.material.opacity > 0.02){
-    const pos = air.geometry.attributes.position.array;
-    for (let i=0;i<AIR_N;i++){
-      const s = airSeed[i]; s.u = (s.u + dt * s.s * spin * 0.02) % 1;
+  if (air.fade(targetOp, 0.05)){
+    air.seeds.forEach((s, i) => {
+      s.u = (s.u + dt * s.s * spin * 0.02) % 1;
       const [r, y] = airPath(s.u, s.j);
-      pos[i*3] = Math.cos(s.a)*r; pos[i*3+1] = y; pos[i*3+2] = Math.sin(s.a)*r;
-    }
-    air.geometry.attributes.position.needsUpdate = true;
+      air.place(i, Math.cos(s.a)*r, y, Math.sin(s.a)*r);
+    });
+    air.commit();
   }
 });
 story.setStep(0, false);
