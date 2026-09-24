@@ -1,10 +1,12 @@
 import * as THREE from 'three';
-import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
+import { box, roundedRect, extrudeUp, coilGeometry, springGeometry as springShape } from '../../src/kit/shapes.js';
+import { createMaterials, linear } from '../../src/kit/materials.js';
+import { softDot, speckleTexture, heatColor, createParticles } from '../../src/kit/effects.js';
 import { createStage, addFloor } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
-import { TOASTER_STORY } from './story.js';
+import { TOASTER_STORY, TOASTER_ALIASES as ALIAS } from './story.js';
 import { partOpacity } from './visual-state.js';
 import { TOASTER_LAYOUT } from './layout.js';
 
@@ -24,61 +26,19 @@ const FLOOR_Y = -2.2;
 addFloor(stage, FLOOR_Y, { size: 13, opacity: 0.16 });
 
 // ---------- Materials ----------
-// A soft, speckled crumb texture so the bread reads as bread, not as a yellow box.
-function crumbTexture() {
-  const c = document.createElement('canvas'); c.width = c.height = 128;
-  const g = c.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(0, 0, 128, 128);
-  for (let i = 0; i < 420; i++) {
-    const shade = 200 + Math.random() * 45 | 0; g.fillStyle = `rgb(${shade},${shade},${shade})`;
-    g.beginPath(); g.ellipse(Math.random() * 128, Math.random() * 128, 1 + Math.random() * 2.5, 0.8 + Math.random() * 1.6, Math.random() * 3, 0, Math.PI * 2); g.fill();
-  }
-  const t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(0.9, 0.9); return t;
-}
-function softDot() {
-  const c = document.createElement('canvas'); c.width = c.height = 64;
-  const g = c.getContext('2d'); const grad = g.createRadialGradient(32, 32, 0, 32, 32, 32);
-  grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
-  g.fillStyle = grad; g.fillRect(0, 0, 64, 64); return new THREE.CanvasTexture(c);
-}
-
-const M = {
-  steel: new THREE.MeshStandardMaterial({ color: 0xd4d9de, metalness: 0.9, roughness: 0.22 }),
-  plastic: new THREE.MeshStandardMaterial({ color: 0x252c33, metalness: 0.1, roughness: 0.55 }),
-  dark: new THREE.MeshStandardMaterial({ color: 0x14181c, metalness: 0.2, roughness: 0.7 }),
-  wire: new THREE.MeshStandardMaterial({ color: 0x6a5a50, metalness: 0.6, roughness: 0.4, emissive: 0x000000 }),
-  mica: new THREE.MeshStandardMaterial({ color: 0xd9bf85, metalness: 0.1, roughness: 0.55 }),
-  crumb: new THREE.MeshStandardMaterial({ color: 0xf1d9a6, roughness: 0.9, map: crumbTexture() }),
-  crust: new THREE.MeshStandardMaterial({ color: 0xc98a4a, roughness: 0.8 }),
-  brass: new THREE.MeshStandardMaterial({ color: 0xd6a44a, metalness: 0.85, roughness: 0.3 }),
-  copper: new THREE.MeshStandardMaterial({ color: 0xc4703a, metalness: 0.85, roughness: 0.3 }),
-  iron: new THREE.MeshStandardMaterial({ color: 0x4a525b, metalness: 0.6, roughness: 0.5 }),
-  spring: new THREE.MeshStandardMaterial({ color: 0xc6ccd2, metalness: 0.9, roughness: 0.2 }),
-  cable: new THREE.MeshStandardMaterial({ color: 0xf2f2ee, roughness: 0.6 }),
-};
-// Hex colours are sRGB; the renderer works in linear light with an sRGB output.
-const linear = hex => new THREE.Color(hex).convertSRGBToLinear();
-Object.values(M).forEach(material => material.color.convertSRGBToLinear());
+const M = createMaterials({
+  steel: 'steel', plastic: 'plastic', dark: 'dark', brass: 'brass', copper: 'copper', iron: 'iron',
+  wire: { color: 0x6a5a50, metalness: 0.6, roughness: 0.4 },
+  mica: { color: 0xd9bf85, metalness: 0.1, roughness: 0.55 },
+  crumb: { color: 0xf1d9a6, roughness: 0.9, map: speckleTexture() }, // speckles so the bread reads as bread
+  crust: { color: 0xc98a4a, roughness: 0.8 },
+  spring: { color: 0xc6ccd2, metalness: 0.9, roughness: 0.2 },
+  cable: { color: 0xf2f2ee, roughness: 0.6 },
+}, { pbr: true });
 
 // ---------- Parts ----------
 const root = new THREE.Group(); scene.add(root);
 const { parts, add, update } = createParts(root, { shadows: true });
-function box(size, mat, pos, radius = 0) {
-  const geo = radius > 0 ? new RoundedBoxGeometry(...size, 3, radius) : new THREE.BoxGeometry(...size);
-  const mesh = new THREE.Mesh(geo, mat); mesh.position.copy(pos); return mesh;
-}
-function roundedRect(w, h, r, cx = 0, cy = 0, path = new THREE.Shape()) {
-  const x = cx - w / 2, y = cy - h / 2;
-  path.moveTo(x + r, y); path.lineTo(x + w - r, y); path.quadraticCurveTo(x + w, y, x + w, y + r);
-  path.lineTo(x + w, y + h - r); path.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-  path.lineTo(x + r, y + h); path.quadraticCurveTo(x, y + h, x, y + h - r);
-  path.lineTo(x, y + r); path.quadraticCurveTo(x, y, x + r, y); return path;
-}
-// Extrude a shape drawn in the XZ plane (shape y = world -z) upward along +Y.
-function extrudeUp(shape, height, mat, y, bevel = 0) {
-  const geo = new THREE.ExtrudeGeometry(shape, { depth: height, bevelEnabled: bevel > 0, bevelSize: bevel, bevelThickness: bevel, bevelSegments: 3, curveSegments: 12 });
-  geo.rotateX(-Math.PI / 2); geo.translate(0, y, 0);
-  return new THREE.Mesh(geo, mat);
-}
 
 const BODY = { w: 5.0, d: 2.9, r: 0.55, bottom: -1.95, top: 0.4 };
 const HEAT_Y = -0.62;               // centre of the heating elements and of the lowered bread
@@ -169,13 +129,7 @@ const heatingWires = [];
 const irPlanes = [];
 {
   const elements = new THREE.Group();
-  const helix = new (class extends THREE.Curve {
-    getPoint(t, target = new THREE.Vector3()) {
-      const a = t * Math.PI * 2 * 52;
-      return target.set(-1.55 + t * 3.1, Math.sin(a) * 0.055, Math.cos(a) * 0.055);
-    }
-  })();
-  const coilGeo = new THREE.TubeGeometry(helix, 620, 0.014, 5, false);
+  const coilGeo = coilGeometry({ length: 3.1, turns: 52, radius: 0.055, wire: 0.014, axis: 'x', radial: 5 });
   TOASTER_LAYOUT.elementZ.forEach(z => {
     const card = box([3.4, 1.6, 0.04], M.mica, new THREE.Vector3(0, 0, z)); card.userData.translucent = true; elements.add(card);
     const face = z + (z < 0 ? 0.09 : -0.09);
@@ -227,28 +181,17 @@ const bimetal = new THREE.Group();
 }
 // Compression spring between the base and the carriage.
 const springBase = BODY.bottom + 0.1;
-function springGeometry(length) {
-  const points = [];
-  for (let i = 0; i <= 64; i++) {
-    const angle = i / 64 * Math.PI * 14;
-    points.push(new THREE.Vector3(Math.cos(angle) * 0.16, i / 64 * length, Math.sin(angle) * 0.16));
-  }
-  return new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 160, 0.035, 6, false);
-}
+const springGeometry = length => springShape(length, { turns: 7, radius: 0.16, wire: 0.035 });
 const spring = new THREE.Mesh(springGeometry(1), M.spring); spring.userData.length = 1;
 add('spring', spring, new THREE.Vector3(1.3, springBase, 0.95), new THREE.Vector3(0, -0.6, 1.2));
 
 // Steam and heat haze rising from the slots.
-const STEAM_N = 90;
-const steamSeed = Array.from({ length: STEAM_N }, () => ({ x: (Math.random() - 0.5) * 2.6, z: TOASTER_LAYOUT.slotZ[Math.random() < 0.5 ? 0 : 1] + (Math.random() - 0.5) * 0.3, t: Math.random(), s: 0.5 + Math.random() * 0.6 }));
-const steamPos = new Float32Array(STEAM_N * 3);
-const steamGeo = new THREE.BufferGeometry(); steamGeo.setAttribute('position', new THREE.BufferAttribute(steamPos, 3));
-const steam = new THREE.Points(steamGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.28, map: softDot(), transparent: true, opacity: 0, depthWrite: false }));
-scene.add(steam);
+const steam = createParticles(scene, 90, {
+  size: 0.28, map: softDot(),
+  seed: () => ({ x: (Math.random() - 0.5) * 2.6, z: TOASTER_LAYOUT.slotZ[Math.random() < 0.5 ? 0 : 1] + (Math.random() - 0.5) * 0.3, t: Math.random(), s: 0.5 + Math.random() * 0.6 }),
+});
 
 // ---------- State and UI ----------
-// "heat" in the story is the radiant heat of the elements, so it focuses the same meshes.
-const ALIAS = { heat: 'elements' };
 const state = { step: 0, explode: 0, targetExplode: 0, playing: true, browning: 3, toast: 0, focus: [], radiant: false, heat: false, down: false, glow: 0, lift: 0, liftV: 0 };
 const story = createStoryUI({
   story: TOASTER_STORY, state,
@@ -259,7 +202,7 @@ const story = createStoryUI({
 });
 bindRange('browning', v => { state.browning = v; });
 
-const warmWire = linear(0x8a1a05), hotWire = linear(0xff6a1a), black = new THREE.Color(0x000000), wireColor = new THREE.Color();
+const black = new THREE.Color(0x000000), wireColor = new THREE.Color();
 const focusStyle = {
   highlight: 0.12,
   // Mica lets you see the coils behind it.
@@ -273,7 +216,7 @@ const focusStyle = {
 // ---------- Frame ----------
 const rawCrumb = linear(0xf1d9a6), toastCrumb = linear(0x8a4a22), rawCrust = linear(0xc98a4a), toastCrust = linear(0x3e1f0e);
 startLoop(stage, (dt, now) => {
-  if (state.glow < 0.5) wireColor.copy(black).lerp(warmWire, state.glow * 2); else wireColor.copy(warmWire).lerp(hotWire, state.glow * 2 - 1);
+  heatColor(state.glow, wireColor);
   update(state, focusStyle, reduced ? 1 : 0.09);
 
   // Carriage: eases down against the spring, then springs up with a small bounce.
@@ -304,16 +247,13 @@ startLoop(stage, (dt, now) => {
 
   // Steam rises once the bread is warm.
   const steamTarget = state.toast > 0.15 && !reduced ? 0.35 * Math.min(1, state.glow + (state.down ? 0 : 0.5)) : 0;
-  steam.material.opacity += (steamTarget - steam.material.opacity) * Math.min(1, dt * 2);
-  if (steam.material.opacity > 0.01) {
+  if (steam.fade(steamTarget, Math.min(1, dt * 2))) {
     const topY = BODY.top + parts.shell.group.position.y;
-    steamSeed.forEach((p, i) => {
+    steam.seeds.forEach((p, i) => {
       if (state.playing) p.t = (p.t + dt * p.s * 0.35) % 1;
-      steamPos[i * 3] = parts.bread.group.position.x + p.x + Math.sin(p.t * 6 + i) * 0.12;
-      steamPos[i * 3 + 1] = topY + p.t * 2.2;
-      steamPos[i * 3 + 2] = p.z + Math.cos(p.t * 5 + i) * 0.08;
+      steam.place(i, parts.bread.group.position.x + p.x + Math.sin(p.t * 6 + i) * 0.12, topY + p.t * 2.2, p.z + Math.cos(p.t * 5 + i) * 0.08);
     });
-    steamGeo.attributes.position.needsUpdate = true;
+    steam.commit();
   }
 
 });
