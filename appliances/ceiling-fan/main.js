@@ -5,12 +5,12 @@ import * as THREE from "three";
   const STORY = [
     {t:'Power comes in from the wall', part:'Regulator · Downrod', explode:0, focus:['rod'], cut:false,
      d:'The regulator on the wall sets the voltage that reaches the fan. Less voltage means a weaker magnetic field, so the fan turns slower. The wires run up inside the downrod.'},
-    {t:'The capacitor makes a second phase', part:'Capacitor', explode:0.35, focus:['cap'], cut:true,
+    {t:'The capacitor makes a second phase', part:'Capacitor · Top cover', explode:0.35, focus:['cap'], cut:true,
      d:'A single-phase supply cannot start a motor by itself. The capacitor (usually 2.5 µF) shifts the current in one coil by about 90°. Now the two coils act like a two-phase supply, which can start a spin.'},
     {t:'The stator makes a rotating field', part:'Stator · Copper windings', explode:0.55, focus:['stator'], cut:true,
-     d:'The stator is fixed to the downrod and does not move. Its copper coils are wound around an iron core. The two out-of-phase currents make a magnetic field that rotates around the core at 50 Hz mains, about 3000 rpm for a 2-pole design.'},
+     d:'The stator is fixed to the downrod and does not move. Its copper coils are wound around an iron core as 16 poles. The two out-of-phase currents make a magnetic field that rotates around the core. On 50 Hz mains, a 16-pole field turns at 375 rpm.'},
     {t:'The rotor chases the field', part:'Rotor · Outer casing', explode:0.55, focus:['rotor'], cut:true,
-     d:'In a ceiling fan, the rotor is on the outside. It is a ring of aluminium bars around the stator. The rotating field induces currents in the bars, and those currents make their own field. The rotor gets pulled around, always a little slower than the field. This is an induction motor.'},
+     d:'In a ceiling fan, the rotor is on the outside. It is a ring of aluminium bars around the stator. The rotating field induces currents in the bars, and those currents make their own field. The rotor gets pulled around, always a little slower than the field: about 350 rpm at full speed. This is an induction motor.'},
     {t:'Bearings let the casing spin', part:'Ball bearings ×2', explode:0.8, focus:['bearTop','bearBot'], cut:true,
      d:'Two ball bearings sit between the fixed shaft and the spinning casing. They carry the weight of the blades and keep the casing centred. Worn bearings are the usual cause of a wobbling or noisy fan.'},
     {t:'The blades push air down', part:'Blades ×3', explode:0.2, focus:['blades'], cut:false,
@@ -37,12 +37,14 @@ import * as THREE from "three";
   // ---------- Materials ----------
   const M = {
     steel: new THREE.MeshStandardMaterial({color:0xB8BEC6, metalness:0.7, roughness:0.35}),
+    canopy: new THREE.MeshStandardMaterial({color:0xB8BEC6, metalness:0.7, roughness:0.35, side:THREE.DoubleSide}),
     housing: new THREE.MeshStandardMaterial({color:0x8E97A2, metalness:0.6, roughness:0.4, transparent:true}),
     copper: new THREE.MeshStandardMaterial({color:0xC4703A, metalness:0.8, roughness:0.35}),
     iron: new THREE.MeshStandardMaterial({color:0x4A525B, metalness:0.5, roughness:0.7}),
     alu: new THREE.MeshStandardMaterial({color:0xD5DAE0, metalness:0.7, roughness:0.3}),
     blade: new THREE.MeshStandardMaterial({color:0x6B4E36, metalness:0.1, roughness:0.7}),
     cap: new THREE.MeshStandardMaterial({color:0x2B3138, metalness:0.2, roughness:0.6}),
+    cover: new THREE.MeshStandardMaterial({color:0x8E97A2, metalness:0.6, roughness:0.4, side:THREE.DoubleSide}),
     bearing: new THREE.MeshStandardMaterial({color:0xD4A64A, metalness:0.9, roughness:0.25}),
     wire: new THREE.MeshStandardMaterial({color:0xC43A3A, roughness:0.6})
   };
@@ -65,7 +67,7 @@ import * as THREE from "three";
   // Canopy + downrod (fixed)
   {
     const g = new THREE.Group();
-    const canopy = new THREE.Mesh(new THREE.ConeGeometry(0.9, 0.5, 32, 1, true), M.steel);
+    const canopy = new THREE.Mesh(new THREE.ConeGeometry(0.9, 0.5, 32, 1, true), M.canopy);
     canopy.position.y = 3.0; canopy.rotation.x = Math.PI; g.add(canopy);
     const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.11, 2.2, 24), M.steel);
     rod.position.y = 1.8; g.add(rod);
@@ -82,23 +84,29 @@ import * as THREE from "three";
   {
     const g = new THREE.Group();
     const core = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.62, 0.7, 24), M.iron); g.add(core);
-    const N = 12;
+    const N = 16; // poles
     for (let i=0;i<N;i++){
       const a = i/N*Math.PI*2;
-      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.075, 10, 20), M.copper);
+      const coil = new THREE.Mesh(new THREE.TorusGeometry(0.15, 0.06, 10, 20), M.copper);
       coil.position.set(Math.cos(a)*0.62, 0, Math.sin(a)*0.62);
       coil.lookAt(0,0,0); g.add(coil);
     }
     add('stator', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,0,0), false);
   }
-  // Capacitor (fixed, tucked under stator)
+  // Capacitor (fixed). It sits in the top cover above the motor, clear of the spinning casing.
   {
     const g = new THREE.Group();
-    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.16, 0.5, 20), M.cap);
-    body.rotation.z = Math.PI/2; g.add(body);
-    const lead = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 0.5, 8), M.wire);
-    lead.position.set(0.3, 0.25, 0); g.add(lead);
-    add('cap', g, new THREE.Vector3(0.0, -0.62, 0.35), new THREE.Vector3(1.6,-1.4,1.2), false);
+    const cover = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.85, 0.42, 40, 1, true), M.cover);
+    cover.position.y = 0.95; cover.userData.cutaway = true; g.add(cover);
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 0.46, 20), M.cap);
+    body.rotation.z = Math.PI/2; body.position.set(0.5, 0.86, 0); g.add(body);
+    const band = new THREE.Mesh(new THREE.CylinderGeometry(0.145, 0.145, 0.06, 20), M.copper);
+    band.rotation.z = Math.PI/2; band.position.set(0.5, 0.86, 0); g.add(band);
+    [-0.05, 0.05].forEach(z => {
+      const lead = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.018, 0.34, 8), M.wire);
+      lead.position.set(0.24, 0.72, z); lead.rotation.z = 0.9; g.add(lead);
+    });
+    add('cap', g, new THREE.Vector3(0,0,0), new THREE.Vector3(1.6,1.0,1.0), false);
   }
   // Bearings (fixed inner race; drawn as brass rings)
   {
@@ -137,19 +145,25 @@ import * as THREE from "three";
     add('blades', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,-3.4,0), true);
   }
 
-  // Airflow particles
-  const AIR_N = 260;
+  // Airflow particles: down under the blades, out along the floor, up the walls, back in near the ceiling.
+  const AIR_N = 320, FLOOR = -3.1, CEIL = -0.3, R_IN = 3.0, R_OUT = 6.2;
   const airGeo = new THREE.BufferGeometry();
   const airPos = new Float32Array(AIR_N*3);
   const airSeed = [];
-  for (let i=0;i<AIR_N;i++){
-    const r = Math.random()*3.2, a = Math.random()*Math.PI*2;
-    airSeed.push({r, a, y: -Math.random()*6 - 0.5, s: 0.6+Math.random()*0.8});
-    airPos[i*3]=Math.cos(a)*r; airPos[i*3+1]=airSeed[i].y; airPos[i*3+2]=Math.sin(a)*r;
-  }
+  for (let i=0;i<AIR_N;i++) airSeed.push({a: Math.random()*Math.PI*2, u: Math.random(), s: 0.7+Math.random()*0.6, j: Math.random()});
   airGeo.setAttribute('position', new THREE.BufferAttribute(airPos, 3));
-  const air = new THREE.Points(airGeo, new THREE.PointsMaterial({color:0x5E8DC4, size:0.06, transparent:true, opacity:0.0}));
+  const air = new THREE.Points(airGeo, new THREE.PointsMaterial({color:0x5E8DC4, size:0.07, transparent:true, opacity:0.0, depthWrite:false}));
   scene.add(air);
+  // u runs 0..1 around one loop of the room; returns [radius, y].
+  const DOWN = CEIL-FLOOR, OUT = R_OUT-R_IN, LOOP = 2*DOWN + 2*OUT;
+  function airPath(u, j){
+    let d = u*LOOP;
+    const rIn = j*R_IN;
+    if (d < DOWN) return [rIn, CEIL - d];
+    d -= DOWN; if (d < OUT) return [rIn + (R_OUT-rIn)*d/OUT, FLOOR + 0.15*j];
+    d -= OUT; if (d < DOWN) return [R_OUT - 0.3*j, FLOOR + d];
+    d -= DOWN; return [R_OUT - (R_OUT-rIn)*d/OUT, CEIL + 0.4 + 0.2*j];
+  }
 
   // ---------- State ----------
   const state = {step:0, explode:0, targetExplode:0, playing:true, speed:3, angle:0, airOn:false, cut:false, focus:[]};
@@ -166,14 +180,14 @@ import * as THREE from "three";
     ui.steps.appendChild(b);
   });
 
-  function setStep(i){
+  function setStep(i, scroll=true){
     state.step = (i + STORY.length) % STORY.length;
     const s = STORY[state.step];
     state.targetExplode = s.explode; ui.explode.value = Math.round(s.explode*100);
     state.airOn = !!s.air; state.cut = s.cut; state.focus = s.focus;
     document.querySelectorAll('.step').forEach((el,j) => el.classList.toggle('active', j===state.step));
     const active = document.getElementById('step-'+state.step);
-    active.scrollIntoView({block:'nearest', behavior:'smooth'});
+    if (scroll) active.scrollIntoView({block:'nearest', behavior:'smooth'});
     applyFocus();
   }
 
@@ -188,6 +202,7 @@ import * as THREE from "three";
         mat.transparent = true;
         let op = 1;
         if (name==='rotor' && state.cut && !hot) op = 0.22;
+        if (m.userData.cutaway && (state.cut || hot)) op = 0.2;
         if (focusOn && !hot) op = Math.min(op, 0.35);
         mat.opacity = op;
         mat.emissive = new THREE.Color(hot ? base : 0x000000);
@@ -217,13 +232,14 @@ import * as THREE from "three";
 
   function resize(){
     const w = canvas.clientWidth, h = canvas.clientHeight;
-    if (canvas.width !== w*renderer.getPixelRatio() || canvas.height !== h*renderer.getPixelRatio()){
+    const pr = renderer.getPixelRatio();
+    if (canvas.width !== Math.floor(w*pr) || canvas.height !== Math.floor(h*pr)){
       renderer.setSize(w, h, false); camera.aspect = w/h; camera.updateProjectionMatrix();
     }
   }
 
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
-  let last = performance.now();
+  let last = performance.now(), spin = 0;
   function frame(now){
     const dt = Math.min(0.05, (now-last)/1000); last = now;
     resize();
@@ -231,17 +247,19 @@ import * as THREE from "three";
     state.explode += (state.targetExplode - state.explode) * (reduce ? 1 : 0.08);
     Object.values(parts).forEach(p => p.g.position.copy(p.home).addScaledVector(p.off, state.explode));
     // spin
-    if (state.playing) state.angle += dt * state.speed * 2.2;
+    const targetSpin = state.playing ? state.speed * 2.2 : 0;
+    spin += (targetSpin - spin) * Math.min(1, dt * (reduce ? 60 : 1.5));
+    state.angle += dt * spin;
     spinner.rotation.y = state.angle;
     // air
-    const targetOp = (state.airOn && state.playing && state.speed>0) ? 0.85 : 0;
+    const targetOp = state.airOn ? 0.85 * Math.min(1, spin / 4) : 0;
     air.material.opacity += (targetOp - air.material.opacity)*0.05;
     if (air.material.opacity > 0.02){
       const pos = air.geometry.attributes.position.array;
       for (let i=0;i<AIR_N;i++){
-        const s = airSeed[i]; s.y -= dt * s.s * (0.6 + state.speed*0.5);
-        if (s.y < -6.5) s.y = -0.5;
-        pos[i*3+1] = s.y;
+        const s = airSeed[i]; s.u = (s.u + dt * s.s * spin * 0.02) % 1;
+        const [r, y] = airPath(s.u, s.j);
+        pos[i*3] = Math.cos(s.a)*r; pos[i*3+1] = y; pos[i*3+2] = Math.sin(s.a)*r;
       }
       air.geometry.attributes.position.needsUpdate = true;
     }
@@ -254,6 +272,6 @@ import * as THREE from "three";
     renderer.render(scene, camera);
     requestAnimationFrame(frame);
   }
-  setStep(0);
+  setStep(0, false);
   requestAnimationFrame(frame);
 })();
