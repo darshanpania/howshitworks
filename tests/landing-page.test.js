@@ -6,7 +6,7 @@ test('landing page lists the upcoming appliances as coming soon', () => {
   const landing = readFileSync('index.html', 'utf8');
   const soon = landing.slice(landing.indexOf('id="soon"'));
   for (const name of [
-    'Door Lock', 'Espresso Machine', 'Mixer Grinder',
+    'Espresso Machine', 'Mixer Grinder',
     'Dishwasher', 'Washing Machine · Top Load', 'Washing Machine · Front Load',
     'Window AC', 'HVAC', 'Electric Chimney', 'Microwave', 'Air Fryer', 'Landline Phone',
   ]) {

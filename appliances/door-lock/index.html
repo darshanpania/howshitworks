@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Door Lock · How Shit Works</title>
+  <meta name="description" content="How a door lock works: pin tumblers, springs, the shear line, the key, and the deadbolt, in 7 steps.">
+  <link rel="icon" type="image/svg+xml" href="/brand/logo.svg">
+  <link rel="canonical" href="https://howshitworks.darshanpania.me/appliances/door-lock">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="How Shit Works">
+  <meta property="og:title" content="Door Lock · How Shit Works">
+  <meta property="og:description" content="How a door lock works: pin tumblers, springs, the shear line, the key, and the deadbolt, in 7 steps.">
+  <meta property="og:url" content="https://howshitworks.darshanpania.me/appliances/door-lock">
+  <meta property="og:image" content="https://howshitworks.darshanpania.me/brand/og-image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Door Lock · How Shit Works">
+  <meta name="twitter:description" content="How a door lock works: pin tumblers, springs, the shear line, the key, and the deadbolt, in 7 steps.">
+  <meta name="twitter:image" content="https://howshitworks.darshanpania.me/brand/og-image.jpg">
+  <meta name="twitter:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="/src/base.css">
+  <link rel="stylesheet" href="./page.css">
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <canvas id="c"></canvas>
+    <div class="brand">
+      <div class="kicker"><a href="/">How Shit Works</a> · No. 05</div>
+      <h1>Door Lock</h1>
+    </div>
+    <dl class="readout" id="readout" aria-live="off">
+      <div><dt>Pins</dt><dd id="r-pins">0 / 5 set</dd></div>
+      <div><dt>Plug</dt><dd id="r-plug">Blocked</dd></div>
+      <div><dt>Bolt</dt><dd id="r-bolt">0 mm out</dd></div>
+    </dl>
+    <div class="hud">
+      <button class="btn primary" id="play">Pause</button>
+      <label for="explode">Explode</label>
+      <input type="range" id="explode" min="0" max="100" value="0">
+    </div>
+  </div>
+  <aside class="panel">
+    <div class="panel-head">
+      <div class="kicker">The story in 7 steps</div>
+      <div class="hint">Drag to orbit. Tap a step to focus a part.</div>
+    </div>
+    <div class="steps" id="steps"></div>
+    <div class="panel-foot">
+      <button class="btn" id="prev">Back</button>
+      <button class="btn" id="next">Next</button>
+    </div>
+  </aside>
+</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
