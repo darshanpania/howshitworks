@@ -105,5 +105,11 @@
 
     <footer>Built with three.js by <a href="https://darshanpania.me">Darshan Pania</a>. Source on <a href="https://github.com/darshanpania/howshitworks">GitHub</a>.</footer>
   </main>
+  <script type="module">
+    import { track } from '/src/analytics.js';
+    document.querySelectorAll('#list a.card').forEach(card => card.addEventListener('click', () => {
+      track('appliance_card_clicked', { target: card.getAttribute('href').split('/').pop(), title: card.querySelector('h2').textContent });
+    }));
+  </script>
 </body>
 </html>

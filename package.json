@@ -16,6 +16,7 @@
     "vite": "^5.4.21"
   },
   "dependencies": {
+    "posthog-js": "^1.434.12",
     "three": "^0.128.0"
   },
   "private": true,
