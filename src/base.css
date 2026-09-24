@@ -26,3 +26,33 @@ a { color: inherit; }
 }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .btn:focus-visible, .step:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Appliance page: 3D stage + story panel ---------- */
+.app { display: grid; grid-template-columns: 1fr 360px; height: 100%; min-height: 560px; }
+.stage { position: relative; overflow: hidden; background: var(--bg); }
+.stage canvas { display: block; width: 100%; height: 100%; }
+.brand { position: absolute; top: 16px; left: 16px; pointer-events: none; }
+.brand a { text-decoration: none; pointer-events: auto; }
+.brand h1 { font: 800 26px/1.05 "Syne", sans-serif; margin: 6px 0 0; text-wrap: balance; }
+.hud { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.hud label, .step .n, .part { font: 500 11px/1 "IBM Plex Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.hud input[type=range] { width: 160px; accent-color: var(--accent); }
+.panel { background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
+.panel-head { padding: 20px 20px 12px; border-bottom: 1px solid var(--line); }
+.hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.steps { overflow: auto; padding: 8px 0; flex: 1; min-height: 0; }
+.step { display: grid; grid-template-columns: 34px 1fr; gap: 10px; width: 100%; text-align: left; padding: 12px 20px; border: 0; border-left: 3px solid transparent; background: transparent; color: var(--ink); cursor: pointer; font-family: inherit; }
+.step:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.step.active { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.step .n { font-size: 12px; line-height: 1.5; letter-spacing: 0; padding-top: 2px; }
+.step .t { font: 600 15px/1.3 "Syne", sans-serif; }
+.step .d { display: none; color: var(--ink); font-size: 13.5px; margin-top: 3px; }
+.part { color: var(--copper); margin-top: 6px; display: none; }
+.step.active .d, .step.active .part { display: block; }
+.panel-foot { padding: 12px 20px; border-top: 1px solid var(--line); display: flex; gap: 8px; }
+.panel-foot .btn { flex: 1; }
+@media (max-width: 800px) {
+  .app { grid-template-columns: 1fr; grid-template-rows: 56vh 1fr; min-height: 100%; }
+  .panel { border-left: 0; border-top: 1px solid var(--line); }
+  .brand h1 { font-size: 20px; }
+}
