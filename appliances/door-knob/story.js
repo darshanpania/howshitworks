@@ -1,0 +1,16 @@
+export const KNOB_STORY = [
+  { t: 'You turn the knob', part: 'Knobs · Roses', explode: 0, focus: ['knobOut', 'knobIn'], cut: false, mode: 'turn',
+    d: 'A knob is a wheel on an axle. Your hand grips a 55 mm knob, so a small push at the rim makes a large twist at the centre. A quarter of a right angle, about 45°, is enough. The rose, the round plate on the door, does not turn.' },
+  { t: 'A square spindle crosses the door', part: 'Spindle', explode: 0.5, focus: ['spindle'], cut: true, mode: 'turn',
+    d: 'Both knobs sit on one steel bar, about 8 mm square. It goes through a 54 mm hole in the door. A square bar cannot slip in a square hole, so the two knobs always turn together.' },
+  { t: 'A cam turns the twist into a pull', part: 'Retractor cam', explode: 0, focus: ['retractor', 'bolt'], cut: true, mode: 'turn',
+    d: 'The spindle goes through a cam with two arms. Turn it either way and one arm swings back against a tab on the retractor frame. The frame, and the bolt on it, move toward the middle of the door.' },
+  { t: 'The latch bolt slides back', part: 'Latch bolt · Strike plate', explode: 0, focus: ['bolt', 'strike'], cut: true, mode: 'cycle',
+    d: 'The frame pulls the bolt about 13 mm back into the door edge. The bolt leaves the hole in the strike plate on the frame, and the door can open. The spindle is 60 mm from the door edge. This distance is the backset.' },
+  { t: 'Springs push it all back', part: 'Latch spring · Rose springs', explode: 0.3, focus: ['springs'], cut: true, mode: 'turn',
+    d: 'Let go, and a coil spring in the latch pushes the bolt out again. A spring in each rose turns the knob back to level. Without these springs, the bolt stays in and the door does not stay shut.' },
+  { t: 'The slope latches the door for you', part: 'Bevelled bolt · Strike plate', explode: 0, focus: ['bolt', 'strike'], cut: true, mode: 'cycle',
+    d: 'You do not turn the knob to shut the door. One face of the bolt has a slope. When the slope hits the frame, it pushes the bolt in. At the strike hole, the spring snaps it out: that is the click. The flat back face stops the door when you pull.' },
+  { t: 'A button locks the outside knob', part: 'Privacy button · Lock bar', explode: 0, focus: ['button'], cut: true, mode: 'lock',
+    d: 'On a bathroom door, a button in the inside knob pushes a bar along the spindle. The bar catches the outside rose, so the outside knob only rattles. Turn the inside knob and the button pops out. A pin in the small outside hole does the same in an emergency.' },
+];

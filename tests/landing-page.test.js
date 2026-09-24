@@ -8,6 +8,7 @@ test('landing page lists the upcoming appliances as coming soon', () => {
   for (const name of [
     'Door Lock', 'Espresso Machine', 'Mixer Grinder',
     'Dishwasher', 'Washing Machine · Top Load', 'Washing Machine · Front Load',
+    'Window AC', 'HVAC', 'Electric Chimney', 'Microwave', 'Air Fryer', 'Landline Phone',
   ]) {
     assert.match(soon, new RegExp(`<h2>${name}</h2>`), `${name} is missing`);
   }
