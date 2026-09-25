@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStage, addFloor } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
+import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion } from '../../src/engine/loop.js';
 import { createMaterials } from '../../src/kit/materials.js';
 import { createParticles } from '../../src/kit/effects.js';
@@ -35,7 +36,7 @@ const M = createMaterials({
 // ---------- Parts ----------
 const root = new THREE.Group(); scene.add(root);
 const spinner = new THREE.Group(); root.add(spinner); // everything that rotates
-const { add, update } = createParts(root);
+const { add, update } = createParts(root, { lively: true });
 
 // Canopy + downrod (fixed)
 {
@@ -155,6 +156,12 @@ const focusStyle = {
   },
 };
 
+// ---------- Sound ----------
+// A 50 Hz induction motor hums at twice the mains frequency; the blades add a soft whoosh
+// that pulses three times per turn, once for each blade.
+const hum = sound.loop({ type: 'tone', wave: 'triangle', freq: 100 });
+const wind = sound.loop({ type: 'noise', filter: 'lowpass', freq: 300, q: 0.7 });
+
 // ---------- Frame ----------
 let spin = 0;
 startLoop(stage, dt => {
@@ -164,6 +171,9 @@ startLoop(stage, dt => {
   spin += (targetSpin - spin) * Math.min(1, dt * (reducedMotion ? 60 : 1.5));
   state.angle += dt * spin;
   spinner.rotation.y = state.angle;
+  const run = Math.min(1, spin / 11); // 0 at rest, 1 at top speed
+  hum.set(0.035 * Math.min(1, spin / 2) * (0.4 + 0.6 * state.speed / 5));
+  wind.set(0.22 * run * (0.75 + 0.25 * Math.sin(state.angle * 3)), 250 + 650 * run);
   // air
   const targetOp = state.airOn ? 0.85 * Math.min(1, spin / 4) : 0;
   if (air.fade(targetOp, 0.05)){

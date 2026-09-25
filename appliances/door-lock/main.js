@@ -2,11 +2,12 @@ import * as THREE from 'three';
 import { createStage, addFloor } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
 import { createStoryUI } from '../../src/engine/story-ui.js';
+import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
 import { box, cylinder, roundedRect, coilGeometry } from '../../src/kit/shapes.js';
 import { createMaterials } from '../../src/kit/materials.js';
 import { LOCK_STORY } from './story.js';
-import { LOCK, RIGHT, WRONG, PIN_X, KEY_PIN, PERIOD, keyTop, stacks, pose } from './pins.js';
+import { LOCK, RIGHT, WRONG, PIN_X, KEY_PIN, PERIOD, OUT, keyTop, stacks, pose } from './pins.js';
 
 // ---------- Stage and light ----------
 // Scale: 1 unit = 1 mm. The plug turns about the x axis, from its face at x = 0 to x = 30.
@@ -59,7 +60,7 @@ const alongX = mesh => { mesh.rotation.z = Math.PI / 2; return mesh; };
 // ---------- Parts ----------
 const root = new THREE.Group(); scene.add(root);
 const turner = new THREE.Group(); root.add(turner); // plug, key pins, key and tailpiece turn together
-const { add, update } = createParts(root, { shadows: true });
+const { add, update } = createParts(root, { shadows: true, lively: true });
 
 // Housing: the round shell plus the tower that holds the five pin chambers.
 {
@@ -210,7 +211,32 @@ startLoop(stage, dt => {
   const out = Math.max(0, (Math.sin(shown.turn - Math.PI / 4) + Math.SQRT1_2) * LOCK.lever);
   bolt.position.z = LOCK.throw / 2 - out;
 
+  playSounds(p, out);
+
   readoutTimer -= dt;
   if (readoutTimer <= 0) { showReadout(out); readoutTimer = 0.1; }
 });
+
+// ---------- Sound ----------
+// Pins tick as they crest each ridge of the key; the plug and bolt knock at their stops.
+const was = { pins: [], rise: [], shift: OUT, turn: 0, out: 0, rattle: 0 };
+function playSounds(p, out) {
+  lastStacks.forEach((st, i) => {
+    const prev = was.pins[i] ?? st.bottom, d = st.bottom - prev;
+    if (Math.abs(d) > 0.004) {
+      const rising = d > 0;
+      if (was.rise[i] && !rising) sound.click(0.08 + Math.random() * 0.05); // over the top of a ridge
+      was.rise[i] = rising;
+    }
+    was.pins[i] = st.bottom;
+  });
+  if (shown.shift > -0.3 && was.shift <= -0.3) sound.thunk(0.25); // key shoulder meets the plug face
+  if (shown.turn > 0.05 && was.turn <= 0.05) sound.click(0.3); // plug starts to turn
+  const full = LOCK.throw - 0.5;
+  if (out > full && was.out <= full) sound.thunk(0.55); // deadbolt fully thrown
+  if (out < 0.5 && was.out >= 0.5) sound.thunk(0.35); // deadbolt back in
+  const side = Math.sign(p.turn);
+  if (state.mode === 'wrong' && side && side !== was.rattle) { sound.click(0.18); was.rattle = side; }
+  was.shift = shown.shift; was.turn = shown.turn; was.out = out;
+}
 story.setStep(0, false);

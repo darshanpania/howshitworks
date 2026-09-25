@@ -1,6 +1,8 @@
 import { track, appliance } from '../analytics.js';
 import { nextAppliance } from '../catalog.js';
 import { reducedMotion } from './loop.js';
+import { sound } from './sound.js';
+import { mountSiteTools } from '../site.js';
 
 const pad = n => String(n).padStart(2, '0');
 
@@ -96,6 +98,8 @@ export function createStoryUI({ story, state, onStep, doc = document, slug = app
 
   // Phone: the sliders live in a small sheet opened by the Controls button.
   const hud = play.closest('.hud'), toggle = $('controls-toggle');
+  mountSiteTools(hud, { sound, doc });
+  if (/[?&]capture\b/.test(doc.defaultView?.location?.search ?? '')) doc.defaultView.__hswState = state;
   function setSheet(open) { hud.classList.toggle('open', open); toggle.setAttribute('aria-expanded', String(open)); }
   if (toggle) {
     toggle.addEventListener('click', () => setSheet(toggle.getAttribute('aria-expanded') !== 'true'));

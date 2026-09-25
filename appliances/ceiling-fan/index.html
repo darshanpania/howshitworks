@@ -24,6 +24,7 @@
   <meta name="twitter:image:alt" content="How Shit Works: Ceiling Fan. A 3D model of the ceiling fan, taken apart.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <script>try{var t=localStorage.getItem('hsw-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
   <link rel="stylesheet" href="/src/base.css">
   <link rel="stylesheet" href="./page.css">
 </head>
@@ -43,8 +44,8 @@
         <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/></svg>
         <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.6v12.8a1 1 0 0 0 1.5.86l10-6.4a1 1 0 0 0 0-1.72l-10-6.4a1 1 0 0 0-1.5.86z"/></svg>
       </button>
-      <button class="btn controls-toggle" id="controls-toggle" type="button" aria-expanded="false" aria-controls="hud-controls">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Controls
+      <button class="btn controls-toggle" id="controls-toggle" type="button" aria-label="Controls" aria-expanded="false" aria-controls="hud-controls">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="label">Controls</span>
       </button>
       <div class="hud-controls" id="hud-controls">
         <div class="control"><label for="explode">Explode</label><output id="explode-out" for="explode">0%</output><input type="range" id="explode" min="0" max="100" value="0"></div>

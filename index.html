@@ -24,12 +24,22 @@
   <meta name="twitter:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <script>try{var t=localStorage.getItem('hsw-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
   <link rel="stylesheet" href="/src/base.css">
   <style>
     /* Page-local text copper: the light --copper is 3.7:1 on white, below AA for small text. */
     :root { --copper-text: #A2562A; --thumb-bg: #D5DCE3; }
     /* --thumb-bg matches the backdrop the light model renders were captured on. */
-    @media (prefers-color-scheme: dark) { :root { --copper-text: var(--copper); --thumb-bg: var(--bg); } }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --copper-text: var(--copper); --thumb-bg: var(--bg); } }
+    :root[data-theme="dark"] { --copper-text: var(--copper); --thumb-bg: var(--bg); }
+    /* Each card has a light and a dark render; show the one that matches the theme. */
+    .thumb .dark { display: none; }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .thumb .light { display: none; } :root:not([data-theme="light"]) .thumb .dark { display: block; } }
+    :root[data-theme="dark"] .thumb .light { display: none; }
+    :root[data-theme="dark"] .thumb .dark { display: block; }
+    .wrap { position: relative; }
+    .site-header { position: absolute; top: 40px; right: 16px; }
+    @media (min-width: 640px) { .site-header { top: 56px; right: 24px; } }
     .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 16px 56px; }
     @media (min-width: 640px) { .wrap { padding: 56px 24px 64px; } }
     h1 { font: 800 clamp(40px, 8vw, 72px)/1 var(--font-display, "Syne", sans-serif); margin: 12px 0 16px; letter-spacing: -.02em; }
@@ -79,6 +89,7 @@
 </head>
 <body>
   <main class="wrap">
+    <div class="site-header" id="site-header"></div>
     <img class="site-logo" src="/brand/logo.svg" alt="" width="56" height="56">
     <div class="kicker">Open it up</div>
     <h1>How Shit Works</h1>
@@ -86,10 +97,10 @@
 
     <div class="grid" id="list">
       <a class="card featured" href="/appliances/ceiling-fan">
-        <picture class="thumb">
-          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/ceiling-fan-dark-800.webp 800w, /thumbs/ceiling-fan-dark-1280.webp 1280w" sizes="(min-width: 1000px) 440px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)">
-          <img src="/thumbs/ceiling-fan-800.webp" srcset="/thumbs/ceiling-fan-800.webp 800w, /thumbs/ceiling-fan-1280.webp 1280w" sizes="(min-width: 1000px) 440px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="eager" fetchpriority="high" decoding="async">
-        </picture>
+        <span class="thumb">
+          <img class="light" src="/thumbs/ceiling-fan-800.webp" srcset="/thumbs/ceiling-fan-800.webp 800w, /thumbs/ceiling-fan-1280.webp 1280w" sizes="(min-width: 1000px) 440px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="eager" fetchpriority="high" decoding="async">
+          <img class="dark" src="/thumbs/ceiling-fan-dark-800.webp" srcset="/thumbs/ceiling-fan-dark-800.webp 800w, /thumbs/ceiling-fan-dark-1280.webp 1280w" sizes="(min-width: 1000px) 440px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="eager" fetchpriority="high" decoding="async">
+        </span>
         <div class="body">
           <div class="num">No. 01</div>
           <h2>Ceiling Fan</h2>
@@ -97,10 +108,10 @@
         </div>
       </a>
       <a class="card" href="/appliances/toaster">
-        <picture class="thumb">
-          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/toaster-dark-800.webp 800w, /thumbs/toaster-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)">
-          <img src="/thumbs/toaster-800.webp" srcset="/thumbs/toaster-800.webp 800w, /thumbs/toaster-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
-        </picture>
+        <span class="thumb">
+          <img class="light" src="/thumbs/toaster-800.webp" srcset="/thumbs/toaster-800.webp 800w, /thumbs/toaster-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="dark" src="/thumbs/toaster-dark-800.webp" srcset="/thumbs/toaster-dark-800.webp 800w, /thumbs/toaster-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+        </span>
         <div class="body">
           <div class="num">No. 02</div>
           <h2>Toaster</h2>
@@ -108,10 +119,10 @@
         </div>
       </a>
       <a class="card" href="/appliances/pressure-cooker">
-        <picture class="thumb">
-          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/pressure-cooker-dark-800.webp 800w, /thumbs/pressure-cooker-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)">
-          <img src="/thumbs/pressure-cooker-800.webp" srcset="/thumbs/pressure-cooker-800.webp 800w, /thumbs/pressure-cooker-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
-        </picture>
+        <span class="thumb">
+          <img class="light" src="/thumbs/pressure-cooker-800.webp" srcset="/thumbs/pressure-cooker-800.webp 800w, /thumbs/pressure-cooker-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="dark" src="/thumbs/pressure-cooker-dark-800.webp" srcset="/thumbs/pressure-cooker-dark-800.webp 800w, /thumbs/pressure-cooker-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+        </span>
         <div class="body">
           <div class="num">No. 03</div>
           <h2>Pressure Cooker</h2>
@@ -119,10 +130,10 @@
         </div>
       </a>
       <a class="card" href="/appliances/door-knob">
-        <picture class="thumb">
-          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/door-knob-dark-800.webp 800w, /thumbs/door-knob-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)">
-          <img src="/thumbs/door-knob-800.webp" srcset="/thumbs/door-knob-800.webp 800w, /thumbs/door-knob-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
-        </picture>
+        <span class="thumb">
+          <img class="light" src="/thumbs/door-knob-800.webp" srcset="/thumbs/door-knob-800.webp 800w, /thumbs/door-knob-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="dark" src="/thumbs/door-knob-dark-800.webp" srcset="/thumbs/door-knob-dark-800.webp 800w, /thumbs/door-knob-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+        </span>
         <div class="body">
           <div class="num">No. 04</div>
           <h2>Door Knob</h2>
@@ -130,10 +141,10 @@
         </div>
       </a>
       <a class="card" href="/appliances/door-lock">
-        <picture class="thumb">
-          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/door-lock-dark-800.webp 800w, /thumbs/door-lock-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)">
-          <img src="/thumbs/door-lock-800.webp" srcset="/thumbs/door-lock-800.webp 800w, /thumbs/door-lock-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
-        </picture>
+        <span class="thumb">
+          <img class="light" src="/thumbs/door-lock-800.webp" srcset="/thumbs/door-lock-800.webp 800w, /thumbs/door-lock-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="dark" src="/thumbs/door-lock-dark-800.webp" srcset="/thumbs/door-lock-dark-800.webp 800w, /thumbs/door-lock-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+        </span>
         <div class="body">
           <div class="num">No. 05</div>
           <h2>Door Lock</h2>
@@ -157,10 +168,12 @@
       <li><span class="num">16</span><div><h2>Landline Phone</h2><p>A carbon microphone turns your voice into a varying current on a copper pair.</p></div></li>
     </ol>
 
-    <footer>Built with three.js by <a href="https://darshanpania.me">Darshan Pania</a>. Source on <a href="https://github.com/darshanpania/howshitworks">GitHub</a>.</footer>
+    <footer>Built with three.js and <span role="img" aria-label="love">❤️</span> by <a href="https://darshanpania.me">Darshan Pania</a>.</footer>
   </main>
   <script type="module">
     import { track } from '/src/analytics.js';
+    import { mountSiteTools } from '/src/site.js';
+    mountSiteTools(document.getElementById('site-header'));
     document.querySelectorAll('#list a.card').forEach(card => card.addEventListener('click', () => {
       track('appliance_card_clicked', { target: card.getAttribute('href').split('/').pop(), title: card.querySelector('h2').textContent });
     }));
