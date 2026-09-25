@@ -31,22 +31,44 @@
 <div class="app">
   <div class="stage">
     <canvas id="c"></canvas>
-    <div class="brand"><div class="kicker"><a href="/">How Shit Works</a> · No. 03</div><h1>Pressure Cooker</h1></div>
-    <dl class="readout" id="readout" aria-live="off">
-      <div><dt>Pressure</dt><dd id="r-pressure">+0.00 bar</dd></div>
-      <div><dt>Water</dt><dd id="r-temp">25°C</dd></div>
-      <div><dt>Whistles</dt><dd id="r-whistles">0</dd></div>
-    </dl>
+    <div class="brand">
+      <nav class="crumbs" aria-label="Site">
+        <a class="home-link" href="/"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>All appliances</a>
+        <span class="kicker"><span class="site-name">How Shit Works · </span>No. 03</span>
+      </nav>
+      <h1>Pressure Cooker</h1>
+      <dl class="readout" id="readout" aria-live="off">
+        <div><dt>Pressure</dt><dd id="r-pressure">+0.00 bar</dd></div>
+        <div><dt>Water</dt><dd id="r-temp">25°C</dd></div>
+        <div><dt>Whistles</dt><dd id="r-whistles">0</dd></div>
+      </dl>
+    </div>
     <div class="hud">
-      <button class="btn primary" id="play">Pause</button>
-      <label for="explode">Explode</label><input type="range" id="explode" min="0" max="100" value="0">
-      <label for="flame">Flame</label><input type="range" id="flame" min="1" max="5" value="3">
+      <button class="btn primary play" id="play" type="button" aria-pressed="true" aria-label="Pause animation">
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/></svg>
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.6v12.8a1 1 0 0 0 1.5.86l10-6.4a1 1 0 0 0 0-1.72l-10-6.4a1 1 0 0 0-1.5.86z"/></svg>
+      </button>
+      <button class="btn controls-toggle" id="controls-toggle" type="button" aria-expanded="false" aria-controls="hud-controls">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Controls
+      </button>
+      <div class="hud-controls" id="hud-controls">
+        <div class="control"><label for="explode">Explode</label><output id="explode-out" for="explode">0%</output><input type="range" id="explode" min="0" max="100" value="0"></div>
+        <div class="control"><label for="flame">Flame</label><output id="flame-out" for="flame">3/5</output><input type="range" id="flame" min="1" max="5" value="3"></div>
+      </div>
     </div>
   </div>
   <aside class="panel">
-    <div class="panel-head"><div class="kicker">The story in 8 steps</div><div class="hint">Drag to orbit. Tap a step to focus a part.</div></div>
+    <div class="panel-head">
+      <div class="panel-meta"><div class="kicker">The story in 8 steps</div><span class="count" id="progress-count" aria-hidden="true">01 / 08</span></div>
+      <div class="progress" id="progress" role="progressbar" aria-label="Story progress" aria-valuemin="1" aria-valuemax="8" aria-valuenow="1"></div>
+      <p class="hint">Drag to orbit. Tap a step to focus a part.</p>
+      <p class="keys"><kbd>←</kbd> <kbd>→</kbd> to step · <kbd>Space</kbd> to pause · <kbd>E</kbd> to explode</p>
+    </div>
     <div class="steps" id="steps"></div>
-    <div class="panel-foot"><button class="btn" id="prev">Back</button><button class="btn" id="next">Next</button></div>
+    <div class="panel-foot">
+      <button class="btn" id="prev" type="button" disabled>Back</button>
+      <button class="btn" id="next" type="button">Next</button>
+    </div>
   </aside>
 </div>
 <script type="module" src="./main.js"></script>

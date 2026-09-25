@@ -1,6 +1,25 @@
+/* Metric-matched fallbacks: until the web fonts arrive, local Arial/Courier take the same
+   width and line height, so text does not reflow when they swap in. Measured against the
+   Google Fonts builds; Syne gets wider as it gets bolder, hence one face per weight. The 800
+   face matches width (no reflow) at the cost of taller glyphs for the moment before Syne loads. */
+@font-face { font-family: "Syne Fallback"; font-weight: 600; src: local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Liberation Sans Bold");
+  size-adjust: 104.3%; ascent-override: 88.7%; descent-override: 26.4%; line-gap-override: 0%; }
+@font-face { font-family: "Syne Fallback"; font-weight: 700; src: local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Liberation Sans Bold");
+  size-adjust: 113.5%; ascent-override: 81.5%; descent-override: 24.2%; line-gap-override: 0%; }
+@font-face { font-family: "Syne Fallback"; font-weight: 800; src: local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Liberation Sans Bold");
+  size-adjust: 165.7%; ascent-override: 55.8%; descent-override: 16.6%; line-gap-override: 0%; }
+@font-face { font-family: "IBM Plex Sans Fallback"; src: local("Arial"), local("ArialMT"), local("Helvetica"), local("Liberation Sans");
+  size-adjust: 100.7%; ascent-override: 101.8%; descent-override: 27.3%; line-gap-override: 0%; }
+@font-face { font-family: "IBM Plex Mono Fallback"; src: local("Courier New"), local("CourierNewPSMT"), local("Liberation Mono");
+  size-adjust: 100%; ascent-override: 102.5%; descent-override: 27.5%; line-gap-override: 0%; }
+
 :root {
   --bg: #EEF1F4; --panel: #FFFFFF; --ink: #1A222B; --muted: #5E6B78; --line: #D5DBE2;
   --copper: #C4703A; --brass: #D4A64A; --accent: #C4703A; --accent-ink: #FFFFFF;
+  --track: color-mix(in srgb, var(--ink) 16%, transparent);
+  --font-display: "Syne", "Syne Fallback", sans-serif;
+  --font-body: "IBM Plex Sans", "IBM Plex Sans Fallback", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, monospace;
   color-scheme: light dark;
 }
 @media (prefers-color-scheme: dark) {
@@ -13,48 +32,171 @@
 html, body { height: 100%; }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
-  font-family: "IBM Plex Sans", system-ui, sans-serif; font-size: 15px; line-height: 1.5;
+  font-family: var(--font-body); font-size: 15px; line-height: 1.5;
 }
 a { color: inherit; }
 .kicker {
-  font: 500 11px/1 "IBM Plex Mono", monospace; letter-spacing: .14em;
+  font: 500 11px/1 var(--font-mono); letter-spacing: .14em;
   text-transform: uppercase; color: var(--muted);
 }
 .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px;
   border: 1px solid var(--line); background: var(--panel); color: var(--ink);
-  padding: 8px 14px; border-radius: 6px; font: 500 13px "IBM Plex Sans", sans-serif; cursor: pointer;
+  padding: 10px 16px; border-radius: 8px; font: 500 14px/1.2 var(--font-body); cursor: pointer;
+  touch-action: manipulation;
 }
+.btn:hover:not(:disabled) { border-color: var(--accent); }
 .btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.btn:focus-visible, .step:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.btn:disabled { opacity: .45; cursor: default; }
+.btn:focus-visible, .step:focus-visible, a:focus-visible, input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Range inputs: a 44px-tall hit area around a thin track and a 22px thumb.
+   --fill (set by story-ui.js) paints the track up to the thumb in WebKit; Firefox has ::-moz-range-progress. */
+input[type=range] {
+  -webkit-appearance: none; appearance: none; width: 140px; height: 44px; margin: 0;
+  background: transparent; cursor: pointer; accent-color: var(--accent); touch-action: pan-y;
+}
+input[type=range]:focus-visible { outline-offset: 0; border-radius: 6px; }
+input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 3px; background: linear-gradient(to right, var(--accent) var(--fill, 0%), var(--track) 0); }
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 22px; height: 22px; margin-top: -8px; border-radius: 50%;
+  background: var(--accent); border: 3px solid var(--panel); box-shadow: 0 0 0 1px var(--accent), 0 1px 3px rgb(0 0 0 / .25);
+}
+input[type=range]::-moz-range-track { height: 6px; border-radius: 3px; background: var(--track); }
+input[type=range]::-moz-range-progress { height: 6px; border-radius: 3px; background: var(--accent); }
+input[type=range]::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%; background: var(--accent);
+  border: 3px solid var(--panel); box-shadow: 0 0 0 1px var(--accent), 0 1px 3px rgb(0 0 0 / .25);
+}
+input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 
 /* ---------- Appliance page: 3D stage + story panel ---------- */
 .app { display: grid; grid-template-columns: 1fr 360px; height: 100%; min-height: 560px; }
 .stage { position: relative; overflow: hidden; background: var(--bg); }
-.stage canvas { display: block; width: 100%; height: 100%; }
-.brand { position: absolute; top: 16px; left: 16px; pointer-events: none; }
+.stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+
+/* Title block, top left. It spans the stage so the readout can sit top right inside it. */
+.brand {
+  position: absolute; top: max(20px, env(safe-area-inset-top)); left: max(20px, env(safe-area-inset-left)); right: 20px;
+  pointer-events: none;
+}
 .brand a { text-decoration: none; pointer-events: auto; }
-.brand h1 { font: 800 26px/1.05 "Syne", sans-serif; margin: 6px 0 0; text-wrap: balance; }
-.hud { position: absolute; left: 16px; right: 16px; bottom: 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.hud label, .step .n, .part { font: 500 11px/1 "IBM Plex Mono", monospace; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.hud input[type=range] { width: 160px; accent-color: var(--accent); }
-.panel { background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; }
-.panel-head { padding: 20px 20px 12px; border-bottom: 1px solid var(--line); }
-.hint { color: var(--muted); font-size: 13px; margin-top: 6px; }
-.steps { overflow: auto; padding: 8px 0; flex: 1; min-height: 0; }
-.step { display: grid; grid-template-columns: 34px 1fr; gap: 10px; width: 100%; text-align: left; padding: 12px 20px; border: 0; border-left: 3px solid transparent; background: transparent; color: var(--ink); cursor: pointer; font-family: inherit; }
+.crumbs { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.home-link {
+  position: relative; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px 0 10px;
+  border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--panel) 88%, transparent);
+  font: 500 13px/1 var(--font-body); color: var(--ink);
+}
+.home-link::before { content: ""; position: absolute; inset: -4px -2px; } /* 44px hit area */
+.home-link:hover { border-color: var(--accent); }
+.home-link svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.brand h1 {
+  font: 800 clamp(28px, 3.2vw, 44px)/1.02 var(--font-display); letter-spacing: -.01em;
+  margin: 12px 0 0; max-width: 60%; text-wrap: balance;
+}
+/* Keep the title and crumbs clear of the readout box in the top right. */
+.brand:has(.readout) :is(.crumbs, h1) { max-width: calc(100% - 240px); }
+/* A soft halo keeps the title legible where the model passes behind it. */
+.brand h1 { text-shadow: 0 0 10px var(--bg), 0 0 4px var(--bg); }
+.crumbs .kicker { white-space: nowrap; padding: 6px 8px; border-radius: 999px; background: color-mix(in srgb, var(--bg) 82%, transparent); }
+
+/* Live numbers from the simulation. Pages add their own highlight colours in page.css. */
+.readout {
+  position: absolute; top: 0; right: 0; margin: 0; display: grid; gap: 6px; padding: 10px 12px; min-width: 150px;
+  background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 8px;
+}
+.readout div { display: flex; justify-content: space-between; gap: 12px; }
+.readout dt { font: 500 11px/1.4 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.readout dd { margin: 0; font: 500 13px/1.4 var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* Play button and sliders along the bottom of the stage. */
+.hud {
+  position: absolute; left: max(20px, env(safe-area-inset-left)); right: 20px; bottom: max(20px, env(safe-area-inset-bottom));
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.hud label, .step .n, .part { font: 500 11px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.play { width: 44px; padding: 0; border-radius: 50%; }
+.play svg { width: 20px; height: 20px; fill: currentColor; }
+.play[aria-pressed=true] .i-play, .play[aria-pressed=false] .i-pause { display: none; }
+.controls-toggle { display: none; border-radius: 999px; }
+.controls-toggle svg { width: 18px; height: 18px; fill: var(--panel); stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.hud-controls { display: flex; gap: 10px; flex-wrap: wrap; }
+.control {
+  display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px;
+  background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 999px;
+}
+.control output { font: 500 12px/1 var(--font-mono); font-variant-numeric: tabular-nums; min-width: 4ch; color: var(--ink); }
+
+/* Story panel */
+.panel { background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; min-height: 0; padding-right: env(safe-area-inset-right); }
+.panel-head { padding: 20px 20px 14px; border-bottom: 1px solid var(--line); }
+.panel-meta { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.count { font: 500 12px/1 var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink); }
+.progress { height: 4px; margin-top: 12px; border-radius: 2px; background: var(--track); overflow: hidden; }
+.progress::before { content: ""; display: block; height: 100%; width: var(--progress, 0%); background: var(--accent); border-radius: inherit; transition: width .3s ease; }
+.hint { color: var(--muted); font-size: 13px; margin: 10px 0 0; }
+.keys { display: none; color: var(--muted); font-size: 12px; margin: 6px 0 0; }
+.keys kbd { display: inline-block; min-width: 20px; text-align: center; font: 500 12px/1 var(--font-body); padding: 2px 5px; border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; background: var(--bg); color: var(--ink); }
+@media (hover: hover) and (pointer: fine) and (min-width: 801px) { .keys { display: block; } }
+.steps { overflow: auto; padding: 8px 0; flex: 1; min-height: 0; overscroll-behavior: contain; }
+.step {
+  display: grid; grid-template-columns: 34px 1fr; gap: 10px; width: 100%; min-height: 44px; text-align: left; padding: 12px 20px;
+  border: 0; border-left: 3px solid transparent; background: transparent; color: var(--ink); cursor: pointer; font-family: inherit;
+}
 .step:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
 .step.active { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
-.step .n { font-size: 12px; line-height: 1.5; letter-spacing: 0; padding-top: 2px; }
-.step .t { font: 600 15px/1.3 "Syne", sans-serif; }
-.step .d { display: none; color: var(--ink); font-size: 13.5px; margin-top: 3px; }
-.part { color: var(--copper); margin-top: 6px; display: none; }
+.step .n { font-size: 12px; line-height: 1.5; letter-spacing: 0; padding-top: 1px; }
+.step .t { display: block; font: 600 15.5px/1.3 var(--font-display); }
+.step .d { display: none; color: var(--ink); font-size: 14.5px; line-height: 1.55; margin-top: 8px; }
+.part { color: var(--copper); margin-top: 10px; display: none; line-height: 1.4; }
 .step.active .d, .step.active .part { display: block; }
-.panel-foot { padding: 12px 20px; border-top: 1px solid var(--line); display: flex; gap: 8px; }
+.panel-foot { padding: 12px 20px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); display: flex; gap: 8px; }
 .panel-foot .btn { flex: 1; }
+.panel-foot .btn.primary { flex: 2; }
+
 @media (max-width: 800px) {
-  .app { grid-template-columns: 1fr; grid-template-rows: 56vh 1fr; min-height: 100%; }
-  .panel { border-left: 0; border-top: 1px solid var(--line); }
-  .brand h1 { font-size: 20px; }
+  .app { grid-template-columns: 1fr; grid-template-rows: 46vh 1fr; grid-template-rows: 46dvh 1fr; height: 100vh; height: 100dvh; min-height: 0; }
+  .panel { border-left: 0; border-top: 1px solid var(--line); padding-right: 0; }
+  .brand { top: max(12px, env(safe-area-inset-top)); left: max(16px, env(safe-area-inset-left)); right: max(16px, env(safe-area-inset-right)); }
+  .brand h1 { font-size: 24px; margin-top: 8px; max-width: none; }
+  /* Readout: one row of small pills under the title instead of a box over the model. */
+  .readout {
+    position: static; display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; padding: 0; min-width: 0;
+    background: none; border: 0; border-radius: 0;
+  }
+  .readout div {
+    flex: none; align-items: baseline; gap: 5px; padding: 3px 8px; border-radius: 999px;
+    background: color-mix(in srgb, var(--panel) 88%, transparent); border: 1px solid var(--line);
+  }
+  .readout dt { font-size: 9px; letter-spacing: .08em; }
+  .readout dd { font-size: 11.5px; }
+  .brand:has(.readout) :is(.crumbs, h1) { max-width: none; }
+  .hud { left: max(16px, env(safe-area-inset-left)); right: max(16px, env(safe-area-inset-right)); bottom: 12px; }
+  .panel-head { padding: 12px 16px 10px; }
+  .progress { margin-top: 10px; }
+  .hint { font-size: 12.5px; margin-top: 6px; }
+  .step { padding: 10px 16px; }
+  .panel-foot { padding: 10px 16px max(10px, env(safe-area-inset-bottom)); }
+}
+/* Narrow stages (tablets and phones): one row of play + Controls; the sliders open in a small sheet above it. */
+@media (max-width: 1100px) {
+  .hud { flex-wrap: nowrap; }
+  .controls-toggle { display: inline-flex; }
+  .hud-controls {
+    display: none; position: absolute; left: 0; bottom: calc(100% + 8px); width: min(100%, 340px);
+    flex-direction: column; gap: 0; padding: 4px 16px;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 8px 24px rgb(0 0 0 / .18);
+  }
+  .hud.open .hud-controls { display: flex; }
+  .hud.open .controls-toggle { border-color: var(--accent); }
+  .control { display: grid; grid-template-columns: 1fr auto; height: auto; padding: 10px 0 0; gap: 0 8px; background: none; border: 0; border-radius: 0; }
+  .control + .control { border-top: 1px solid var(--line); }
+  .control input[type=range] { grid-column: 1 / -1; width: 100%; }
+}
+@media (max-width: 400px) { .site-name { display: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .progress::before { transition: none; }
+  input[type=range]:active::-webkit-slider-thumb { transform: none; }
 }
 
 /* Shared brand mark; dimensions prevent layout shift before the SVG loads. */
