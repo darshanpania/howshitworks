@@ -1,13 +1,14 @@
 /* Metric-matched fallbacks: until the web fonts arrive, local Arial/Courier take the same
    width and line height, so text does not reflow when they swap in. Measured against the
-   Google Fonts builds; Syne gets wider as it gets bolder, hence one face per weight. The 800
-   face matches width (no reflow) at the cost of taller glyphs for the moment before Syne loads. */
+   Google Fonts builds; Syne gets wider as it gets bolder, hence one face per weight.
+   Syne 800 is ~1.65x as wide as Arial Bold; scaling that far would push capitals out of a
+   line-height: 1 box, so the 800 face caps at 115% (capitals fit) and prefers wider Arial Black. */
 @font-face { font-family: "Syne Fallback"; font-weight: 600; src: local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Liberation Sans Bold");
   size-adjust: 104.3%; ascent-override: 88.7%; descent-override: 26.4%; line-gap-override: 0%; }
 @font-face { font-family: "Syne Fallback"; font-weight: 700; src: local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Liberation Sans Bold");
   size-adjust: 113.5%; ascent-override: 81.5%; descent-override: 24.2%; line-gap-override: 0%; }
-@font-face { font-family: "Syne Fallback"; font-weight: 800; src: local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Liberation Sans Bold");
-  size-adjust: 165.7%; ascent-override: 55.8%; descent-override: 16.6%; line-gap-override: 0%; }
+@font-face { font-family: "Syne Fallback"; font-weight: 800; src: local("Arial Black"), local("Arial-Black"), local("Arial Bold"), local("Arial-BoldMT"), local("Helvetica Bold"), local("Liberation Sans Bold");
+  size-adjust: 115%; ascent-override: 80.4%; descent-override: 23.9%; line-gap-override: 0%; }
 @font-face { font-family: "IBM Plex Sans Fallback"; src: local("Arial"), local("ArialMT"), local("Helvetica"), local("Liberation Sans");
   size-adjust: 100.7%; ascent-override: 101.8%; descent-override: 27.3%; line-gap-override: 0%; }
 @font-face { font-family: "IBM Plex Mono Fallback"; src: local("Courier New"), local("CourierNewPSMT"), local("Liberation Mono");

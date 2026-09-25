@@ -27,8 +27,9 @@
   <link rel="stylesheet" href="/src/base.css">
   <style>
     /* Page-local text copper: the light --copper is 3.7:1 on white, below AA for small text. */
-    :root { --copper-text: #A2562A; }
-    @media (prefers-color-scheme: dark) { :root { --copper-text: var(--copper); } }
+    :root { --copper-text: #A2562A; --thumb-bg: #D5DCE3; }
+    /* --thumb-bg matches the backdrop the light model renders were captured on. */
+    @media (prefers-color-scheme: dark) { :root { --copper-text: var(--copper); --thumb-bg: var(--bg); } }
     .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 16px 56px; }
     @media (min-width: 640px) { .wrap { padding: 56px 24px 64px; } }
     h1 { font: 800 clamp(40px, 8vw, 72px)/1 var(--font-display, "Syne", sans-serif); margin: 12px 0 16px; letter-spacing: -.02em; }
@@ -46,7 +47,7 @@
     }
     .card:hover { border-color: var(--accent); }
     .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-color: var(--accent); }
-    .thumb { display: block; aspect-ratio: 16 / 10; background: var(--bg); border-bottom: 1px solid var(--line); overflow: hidden; }
+    .thumb { display: block; aspect-ratio: 16 / 10; background: var(--thumb-bg); border-bottom: 1px solid var(--line); overflow: hidden; }
     .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
     .card:hover .thumb img { transform: scale(1.03); }
     @media (prefers-reduced-motion: reduce) { .card:hover .thumb img { transform: none; } }
