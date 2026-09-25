@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStage, addFloor } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
+import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
 import { box, cylinder, lathe } from '../../src/kit/shapes.js';
 import { createMaterials } from '../../src/kit/materials.js';
@@ -38,7 +39,7 @@ const flameMat = new THREE.MeshBasicMaterial({ color: 0x3d7dff, transparent: tru
 const POT = { r: 1.2, bottom: -1.5, top: 0.2 };
 const WATER_TOP = -0.45;
 const root = new THREE.Group(); scene.add(root);
-const { parts, add, update } = createParts(root, { shadows: true });
+const { parts, add, update } = createParts(root, { shadows: true, lively: true });
 
 // Gas burner with a ring of flames.
 const flames = new THREE.Group();
@@ -163,6 +164,28 @@ function showReadout() {
   readout.box.classList.toggle('hot', sim.p > 0.5);
 }
 
+// ---------- Sound ----------
+// Gas roar from the burner, a low simmer at the boil, and the whistle: steam rushing
+// past the rattling weight. The safety valve is a harsher hiss.
+const burner = sound.loop({ type: 'noise', filter: 'lowpass', freq: 380, q: 0.8 });
+const simmer = sound.loop({ type: 'noise', filter: 'bandpass', freq: 700, q: 3 });
+const hiss = sound.loop({ type: 'noise', filter: 'highpass', freq: 3500, q: 0.7 });
+const whistle = sound.loop({ type: 'tone', wave: 'sine', freq: 2400 });
+const safetyHiss = sound.loop({ type: 'noise', filter: 'bandpass', freq: 5200, q: 1.2 });
+let wasLifted = false;
+function playSounds(now, boiling) {
+  const on = state.playing ? 1 : 0;
+  burner.set(0.12 * state.flame * on);
+  simmer.set(boiling ? 0.05 * on : 0, 600 + Math.sin(now / 120) * 200);
+  const flutter = 0.7 + 0.3 * Math.sin(now / 25);
+  hiss.set(sim.lifted ? 0.13 * flutter * on : 0);
+  whistle.set(sim.lifted ? 0.05 * flutter * on : 0, 2300 + Math.sin(now / 40) * 90);
+  safetyHiss.set(sim.safetyOpen ? 0.16 * on : 0);
+  if (sim.lifted && !wasLifted) sound.click(0.3); // the weight lifts off the vent
+  if (!sim.lifted && wasLifted) sound.thunk(0.2); // and drops back
+  wasLifted = sim.lifted;
+}
+
 // ---------- Frame ----------
 startLoop(stage, (dt, now) => {
   update(state, focusStyle, reduced ? 1 : 0.09);
@@ -220,6 +243,8 @@ startLoop(stage, (dt, now) => {
     });
     safetyJet.commit();
   }
+
+  playSounds(now, boiling);
 
   readoutTimer -= dt;
   if (readoutTimer <= 0) { showReadout(); readoutTimer = 0.15; }

@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStage, addFloor } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
 import { createStoryUI } from '../../src/engine/story-ui.js';
+import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
 import { box, cylinder, lathe, roundedRect, coilGeometry } from '../../src/kit/shapes.js';
 import { createMaterials } from '../../src/kit/materials.js';
@@ -55,7 +56,7 @@ const alongZ = (object, dir) => { object.rotation.x = dir * Math.PI / 2; return 
 // ---------- Parts ----------
 const root = new THREE.Group(); scene.add(root);
 const door = new THREE.Group(); root.add(door); // everything that moves with the door
-const { add, update } = createParts(root, { shadows: true });
+const { add, update } = createParts(root, { shadows: true, lively: true });
 
 // Door slab: a 16 × 16 cm piece near the edge, with the 54 mm cross bore.
 {
@@ -209,7 +210,23 @@ startLoop(stage, dt => {
   latchSpring.scale.x = springLen; latchSpring.position.x = LATCH_SPRING.from + springLen / 2;
   lockBar.position.z = shown.button * 0.8;
 
+  playSounds(target);
+
   readoutTimer -= dt;
   if (readoutTimer <= 0) { showReadout(); readoutTimer = 0.1; }
 });
+
+// ---------- Sound ----------
+// Each sound fires on an edge: the moment a value crosses a threshold.
+const was = { knob: 0, bolt: 0, door: 0, button: 0, rattle: 0 };
+function playSounds(target) {
+  if (shown.knob > 0.08 && was.knob <= 0.08) sound.tone({ freq: 190, glide: 150, type: 'triangle', gain: 0.08, release: 0.25 }); // the spring winds up
+  if (shown.bolt < 0.25 && was.bolt >= 0.25) { sound.click(0.45); sound.thunk(0.12); } // the latch snaps out
+  if (shown.bolt > 0.9 && was.bolt <= 0.9) sound.click(0.15); // bolt hits its stop inside the door
+  if (shown.door < 0.05 && was.door >= 0.05) sound.thunk(0.5); // the door meets the stop
+  if (shown.button > 0.5 && was.button <= 0.5) sound.click(0.3);
+  const side = Math.sign(target.outer);
+  if (state.mode === 'lock' && side && side !== was.rattle) { sound.click(0.12); was.rattle = side; }
+  was.knob = shown.knob; was.bolt = shown.bolt; was.door = shown.door; was.button = shown.button;
+}
 story.setStep(0, false);

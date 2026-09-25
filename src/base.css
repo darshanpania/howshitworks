@@ -23,12 +23,19 @@
   --font-mono: "IBM Plex Mono", "IBM Plex Mono Fallback", ui-monospace, monospace;
   color-scheme: light dark;
 }
+/* Dark tokens: follow the system unless the reader picked a theme (data-theme on <html>, set by /src/site.js). */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #0F151B; --panel: #161E26; --ink: #E8ECF0; --muted: #8C98A4; --line: #26313C;
     --copper: #D98B52; --brass: #E0B65C; --accent: #D98B52; --accent-ink: #0F151B;
   }
 }
+:root[data-theme="dark"] {
+  --bg: #0F151B; --panel: #161E26; --ink: #E8ECF0; --muted: #8C98A4; --line: #26313C;
+  --copper: #D98B52; --brass: #E0B65C; --accent: #D98B52; --accent-ink: #0F151B;
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
 body {
@@ -202,3 +209,32 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 
 /* Shared brand mark; dimensions prevent layout shift before the SVG loads. */
 .site-logo { display: block; margin-bottom: 20px; }
+
+/* ---------- Site tools: sound, share, theme ---------- */
+.site-tools { display: flex; gap: 8px; align-items: center; }
+.btn.tool { width: 44px; padding: 0; border-radius: 50%; background: color-mix(in srgb, var(--panel) 88%, transparent); }
+.btn.tool svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.btn.tool[aria-pressed=true] { color: var(--accent); border-color: var(--accent); }
+.share { position: relative; }
+.share-menu {
+  position: absolute; right: 0; bottom: calc(100% + 8px); z-index: 10; width: 240px; padding: 6px;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 12px; box-shadow: 0 8px 24px rgb(0 0 0 / .18);
+}
+.share-menu[hidden] { display: none; }
+.share-menu.below, .site-header .share-menu { bottom: auto; top: calc(100% + 8px); }
+.share-item {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 8px 10px;
+  border: 0; border-radius: 8px; background: none; color: var(--ink); font: 500 14px/1.2 var(--font-body); text-align: left; cursor: pointer;
+}
+.share-item:hover, .share-item:focus-visible { background: color-mix(in srgb, var(--accent) 12%, transparent); outline: none; }
+.share-item svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.share-status { margin: 0; padding: 0 10px; color: var(--muted); font-size: 12.5px; overflow-wrap: anywhere; }
+.share-status:not(:empty) { padding: 6px 10px 4px; }
+/* On appliance pages the tools sit at the right end of the play bar. */
+.hud .site-tools { margin-left: auto; }
+@media (max-width: 420px) {
+  .hud { gap: 6px; }
+  .hud .site-tools { gap: 6px; }
+  .controls-toggle { padding: 10px 12px; }
+}
+@media (max-width: 380px) { .controls-toggle .label { display: none; } .controls-toggle { width: 44px; padding: 0; } }

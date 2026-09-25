@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { trackOnce } from '../analytics.js';
+import { reducedMotion } from './loop.js';
 
 // Renderer, scene, camera, orbit controls and resize for one appliance canvas.
 // pbr: true turns on linear colour, tone mapping, soft shadows and room reflections.
@@ -25,6 +26,15 @@ export function createStage(canvas, {
   };
   attachOrbit(canvas, cam, { zoom, phiLimit });
 
+  // Intro: the camera swings in from further out while the parts come together.
+  // Any touch or drag ends it at once, so it never fights the reader.
+  // ?capture skips the intro and exposes the camera, for rendering the landing-page thumbnails.
+  const capture = /[?&]capture\b/.test(globalThis.location?.search ?? '');
+  if (capture) Object.assign(globalThis, { __hswCam: cam, __hswScene: scene });
+  const intro = { t: reducedMotion || capture ? 1 : 0, start: performance.now() };
+  canvas.addEventListener('pointerdown', () => { intro.t = 1; });
+  const easeOut = t => 1 - (1 - t) ** 3;
+
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight, pr = renderer.getPixelRatio();
     // setSize() floors to whole pixels, so compare against the floored size.
@@ -33,10 +43,13 @@ export function createStage(canvas, {
     }
   }
   function render() {
+    if (intro.t < 1) intro.t = Math.min(1, (performance.now() - intro.start) / 2200);
+    const away = 1 - easeOut(intro.t);
+    const r = cam.r * (1 + 0.45 * away), theta = cam.theta - 1.1 * away, phi = cam.phi - 0.25 * away;
     camera.position.set(
-      cam.target.x + cam.r * Math.sin(cam.phi) * Math.sin(cam.theta),
-      cam.target.y + cam.r * Math.cos(cam.phi),
-      cam.target.z + cam.r * Math.sin(cam.phi) * Math.cos(cam.theta));
+      cam.target.x + r * Math.sin(phi) * Math.sin(theta),
+      cam.target.y + r * Math.cos(phi),
+      cam.target.z + r * Math.sin(phi) * Math.cos(theta));
     camera.lookAt(cam.target);
     renderer.render(scene, camera);
   }

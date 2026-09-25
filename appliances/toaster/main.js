@@ -5,6 +5,7 @@ import { softDot, speckleTexture, heatColor, createParticles } from '../../src/k
 import { createStage, addFloor } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
+import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
 import { TOASTER_STORY, TOASTER_ALIASES as ALIAS } from './story.js';
 import { partOpacity } from './visual-state.js';
@@ -38,7 +39,7 @@ const M = createMaterials({
 
 // ---------- Parts ----------
 const root = new THREE.Group(); scene.add(root);
-const { parts, add, update } = createParts(root, { shadows: true });
+const { parts, add, update } = createParts(root, { shadows: true, lively: true });
 
 const BODY = { w: 5.0, d: 2.9, r: 0.55, bottom: -1.95, top: 0.4 };
 const HEAT_Y = -0.62;               // centre of the heating elements and of the lowered bread
@@ -213,6 +214,24 @@ const focusStyle = {
   },
 };
 
+// ---------- Sound ----------
+// Mains hum from the hot element, a ka-chunk when the lever latches, and a spring twang on pop-up.
+const buzz = sound.loop({ type: 'tone', wave: 'sawtooth', freq: 100 });
+const buzzTone = sound.loop({ type: 'noise', filter: 'bandpass', freq: 3200, q: 0.6 });
+const was = { lift: 0, tick: 0 };
+function playSounds(dt) {
+  const bottom = -LIFT * 0.92;
+  if (state.lift < bottom && was.lift >= bottom) { sound.thunk(0.4); sound.click(0.35); } // carriage latched
+  if (state.lift > bottom && was.lift <= bottom && !state.down) { sound.twang(0.25); sound.click(0.3); } // released
+  if (state.lift > -0.02 && was.lift <= -0.02 && !state.down) sound.thunk(0.3); // carriage hits the top
+  buzz.set(0.012 * state.glow);
+  buzzTone.set(0.02 * state.glow);
+  // Warm metal ticks as it expands.
+  was.tick -= dt;
+  if (state.glow > 0.4 && state.playing && was.tick <= 0) { sound.click(0.05 + Math.random() * 0.04); was.tick = 0.4 + Math.random() * 1.6; }
+  was.lift = state.lift;
+}
+
 // ---------- Frame ----------
 const rawCrumb = linear(0xf1d9a6), toastCrumb = linear(0x8a4a22), rawCrust = linear(0xc98a4a), toastCrust = linear(0x3e1f0e);
 startLoop(stage, (dt, now) => {
@@ -255,6 +274,6 @@ startLoop(stage, (dt, now) => {
     });
     steam.commit();
   }
-
+  playSounds(dt);
 });
 story.setStep(0, false);
