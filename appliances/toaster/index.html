@@ -12,18 +12,18 @@
   <meta property="og:title" content="Toaster · How Shit Works">
   <meta property="og:description" content="How a pop-up toaster works: nichrome heating elements, an electromagnet, thermostat, and spring, in 7 steps.">
   <meta property="og:url" content="https://howshitworks.darshanpania.me/appliances/toaster">
-  <meta property="og:image" content="https://howshitworks.darshanpania.me/brand/og-image.jpg">
+  <meta property="og:image" content="https://howshitworks.darshanpania.me/brand/og/toaster.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
+  <meta property="og:image:alt" content="How Shit Works: Toaster. A 3D model of the toaster, taken apart.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Toaster · How Shit Works">
   <meta name="twitter:description" content="How a pop-up toaster works: nichrome heating elements, an electromagnet, thermostat, and spring, in 7 steps.">
-  <meta name="twitter:image" content="https://howshitworks.darshanpania.me/brand/og-image.jpg">
-  <meta name="twitter:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
+  <meta name="twitter:image" content="https://howshitworks.darshanpania.me/brand/og/toaster.jpg">
+  <meta name="twitter:image:alt" content="How Shit Works: Toaster. A 3D model of the toaster, taken apart.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="/src/base.css">
   <link rel="stylesheet" href="./page.css">
 </head>
@@ -31,17 +31,39 @@
 <div class="app">
   <div class="stage">
     <canvas id="c"></canvas>
-    <div class="brand"><div class="kicker"><a href="/">How Shit Works</a> · No. 02</div><h1>Toaster</h1></div>
+    <div class="brand">
+      <nav class="crumbs" aria-label="Site">
+        <a class="home-link" href="/"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>All appliances</a>
+        <span class="kicker"><span class="site-name">How Shit Works · </span>No. 02</span>
+      </nav>
+      <h1>Toaster</h1>
+    </div>
     <div class="hud">
-      <button class="btn primary" id="play">Pause</button>
-      <label for="explode">Explode</label><input type="range" id="explode" min="0" max="100" value="0">
-      <label for="browning">Browning</label><input type="range" id="browning" min="0" max="5" value="3">
+      <button class="btn primary play" id="play" type="button" aria-pressed="true" aria-label="Pause animation">
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/></svg>
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.6v12.8a1 1 0 0 0 1.5.86l10-6.4a1 1 0 0 0 0-1.72l-10-6.4a1 1 0 0 0-1.5.86z"/></svg>
+      </button>
+      <button class="btn controls-toggle" id="controls-toggle" type="button" aria-expanded="false" aria-controls="hud-controls">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Controls
+      </button>
+      <div class="hud-controls" id="hud-controls">
+        <div class="control"><label for="explode">Explode</label><output id="explode-out" for="explode">0%</output><input type="range" id="explode" min="0" max="100" value="0"></div>
+        <div class="control"><label for="browning">Browning</label><output id="browning-out" for="browning">3/5</output><input type="range" id="browning" min="0" max="5" value="3"></div>
+      </div>
     </div>
   </div>
   <aside class="panel">
-    <div class="panel-head"><div class="kicker">The story in 7 steps</div><div class="hint">Drag to orbit. Tap a step to focus a part.</div></div>
+    <div class="panel-head">
+      <div class="panel-meta"><div class="kicker">The story in 7 steps</div><span class="count" id="progress-count" aria-hidden="true">01 / 07</span></div>
+      <div class="progress" id="progress" role="progressbar" aria-label="Story progress" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1"></div>
+      <p class="hint">Drag to orbit. Tap a step to focus a part.</p>
+      <p class="keys"><kbd>←</kbd> <kbd>→</kbd> to step · <kbd>Space</kbd> to pause · <kbd>E</kbd> to explode</p>
+    </div>
     <div class="steps" id="steps"></div>
-    <div class="panel-foot"><button class="btn" id="prev">Back</button><button class="btn" id="next">Next</button></div>
+    <div class="panel-foot">
+      <button class="btn" id="prev" type="button" disabled>Back</button>
+      <button class="btn" id="next" type="button">Next</button>
+    </div>
   </aside>
 </div>
 <script type="module" src="./main.js"></script>

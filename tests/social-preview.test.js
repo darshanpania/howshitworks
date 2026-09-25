@@ -12,7 +12,10 @@ for (const page of pages) {
     assert.equal(meta('og:description'), meta('description'));
     assert.equal(meta('og:type'), 'website');
     assert.equal(meta('og:url'), origin + (page === 'index.html' ? '/' : '/' + page.replace('/index.html', '')));
-    assert.equal(meta('og:image'), `${origin}/brand/og-image.jpg`);
+    const slug = page.split('/')[1];
+    const image = page === 'index.html' ? '/brand/og-image.jpg' : `/brand/og/${slug}.jpg`;
+    assert.equal(meta('og:image'), origin + image);
+    assert.ok(existsSync('public' + image), `${image} is missing`);
     assert.equal(meta('og:image:width'), '1200');
     assert.equal(meta('og:image:height'), '630');
     assert.equal(meta('og:image:type'), 'image/jpeg');

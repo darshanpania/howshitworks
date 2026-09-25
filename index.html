@@ -23,25 +23,58 @@
   <meta name="twitter:image" content="https://howshitworks.darshanpania.me/brand/og-image.jpg">
   <meta name="twitter:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <link rel="stylesheet" href="/src/base.css">
   <style>
-    .wrap { max-width: 960px; margin: 0 auto; padding: 48px 16px 64px; }
-    h1 { font: 800 clamp(40px, 8vw, 72px)/1 "Syne", sans-serif; margin: 12px 0 16px; letter-spacing: -.02em; }
+    /* Page-local text copper: the light --copper is 3.7:1 on white, below AA for small text. */
+    :root { --copper-text: #A2562A; --thumb-bg: #D5DCE3; }
+    /* --thumb-bg matches the backdrop the light model renders were captured on. */
+    @media (prefers-color-scheme: dark) { :root { --copper-text: var(--copper); --thumb-bg: var(--bg); } }
+    .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 16px 56px; }
+    @media (min-width: 640px) { .wrap { padding: 56px 24px 64px; } }
+    h1 { font: 800 clamp(40px, 8vw, 72px)/1 var(--font-display, "Syne", sans-serif); margin: 12px 0 16px; letter-spacing: -.02em; }
     .lede { max-width: 56ch; color: var(--muted); font-size: 17px; margin: 0 0 40px; }
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+
+    /* Live appliances. 1 column on phones, 2 on tablets, 3 on desktop; the first card is
+       featured and spans two columns, so five cards always fill whole rows. */
+    .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1000px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
     .card {
-      display: block; text-decoration: none; background: var(--panel); border: 1px solid var(--line);
-      border-radius: 10px; padding: 20px; transition: border-color .15s;
+      display: flex; flex-direction: column; min-width: 0; text-decoration: none; overflow: hidden;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
+      transition: border-color .15s, box-shadow .15s;
     }
     .card:hover { border-color: var(--accent); }
-    .card .num { font: 500 12px "IBM Plex Mono", monospace; color: var(--copper); }
-    .card h2 { font: 700 22px/1.15 "Syne", sans-serif; margin: 8px 0 6px; }
+    .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-color: var(--accent); }
+    .thumb { display: block; aspect-ratio: 16 / 10; background: var(--thumb-bg); border-bottom: 1px solid var(--line); overflow: hidden; }
+    .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
+    .card:hover .thumb img { transform: scale(1.03); }
+    @media (prefers-reduced-motion: reduce) { .card:hover .thumb img { transform: none; } }
+    .body { padding: 16px 20px 20px; }
+    .card .num { font: 500 12px/1 var(--font-mono, "IBM Plex Mono", monospace); color: var(--copper-text); letter-spacing: .04em; }
+    .card h2 { font: 700 22px/1.15 var(--font-display, "Syne", sans-serif); margin: 8px 0 6px; }
     .card p { margin: 0; color: var(--muted); font-size: 14px; }
-    .card.soon { opacity: .6; border-style: dashed; }
-    .card.soon:hover { border-color: var(--line); }
-    .section { font: 500 11px/1 "IBM Plex Mono", monospace; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 48px 0 16px; }
-    footer { margin-top: 56px; color: var(--muted); font-size: 13px; }
+    @media (min-width: 640px) {
+      .featured { grid-column: span 2; display: grid; grid-template-columns: 11fr 9fr; }
+      .featured .thumb { aspect-ratio: auto; min-height: 100%; border-bottom: 0; border-right: 1px solid var(--line); }
+      .featured .body { align-self: center; padding: 24px 28px; }
+      .featured h2 { font-size: clamp(26px, 3vw, 34px); margin: 10px 0 10px; }
+      .featured p { font-size: 15px; }
+    }
+
+    /* Coming soon: a compact numbered list, secondary to the live cards. */
+    .section { display: flex; align-items: baseline; gap: 10px; font: 500 11px/1 var(--font-mono, "IBM Plex Mono", monospace); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 56px 0 8px; }
+    .section .count { letter-spacing: .04em; color: var(--copper-text); }
+    .soon { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; column-gap: 32px; }
+    @media (min-width: 640px) { .soon { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 1000px) { .soon { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    .soon li { display: grid; grid-template-columns: 28px 1fr; gap: 8px; padding: 11px 0; border-top: 1px solid var(--line); min-width: 0; }
+    .soon .num { font: 500 12px/20px var(--font-mono, "IBM Plex Mono", monospace); color: var(--muted); }
+    .soon h2 { font: 600 15px/20px var(--font-display, "Syne", sans-serif); margin: 0; color: var(--ink); }
+    .soon p { margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
+    @media (max-width: 639px) { .soon p { display: none; } }
+    footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
@@ -49,94 +82,80 @@
     <img class="site-logo" src="/brand/logo.svg" alt="" width="56" height="56">
     <div class="kicker">Open it up</div>
     <h1>How Shit Works</h1>
-    <p class="lede">Everyday appliances, taken apart in 3D. Each one is a short story: where the power comes in, what moves, and why it does the job. Drag to orbit, explode the parts, and step through.</p>
+    <p class="lede">Everyday appliances, taken apart in 3D. Each one is a short story: where the power comes in, what moves, and why it does the job.</p>
 
     <div class="grid" id="list">
-      <a class="card" href="/appliances/ceiling-fan">
-        <div class="num">No. 01</div>
-        <h2>Ceiling Fan</h2>
-        <p>An outer-rotor induction motor, a capacitor to get it started, and three blades pitched at 11°.</p>
+      <a class="card featured" href="/appliances/ceiling-fan">
+        <picture class="thumb">
+          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/ceiling-fan-dark-800.webp 800w, /thumbs/ceiling-fan-dark-1280.webp 1280w" sizes="(min-width: 1000px) 440px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)">
+          <img src="/thumbs/ceiling-fan-800.webp" srcset="/thumbs/ceiling-fan-800.webp 800w, /thumbs/ceiling-fan-1280.webp 1280w" sizes="(min-width: 1000px) 440px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="eager" fetchpriority="high" decoding="async">
+        </picture>
+        <div class="body">
+          <div class="num">No. 01</div>
+          <h2>Ceiling Fan</h2>
+          <p>An outer-rotor induction motor, a capacitor to get it started, and three blades pitched at 11°.</p>
+        </div>
       </a>
       <a class="card" href="/appliances/toaster">
-        <div class="num">No. 02</div>
-        <h2>Toaster</h2>
-        <p>Nichrome wires, a bimetal strip, and an electromagnet that holds the bread down.</p>
+        <picture class="thumb">
+          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/toaster-dark-800.webp 800w, /thumbs/toaster-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)">
+          <img src="/thumbs/toaster-800.webp" srcset="/thumbs/toaster-800.webp 800w, /thumbs/toaster-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+        </picture>
+        <div class="body">
+          <div class="num">No. 02</div>
+          <h2>Toaster</h2>
+          <p>Nichrome wires, a bimetal strip, and an electromagnet that holds the bread down.</p>
+        </div>
       </a>
       <a class="card" href="/appliances/pressure-cooker">
-        <div class="num">No. 03</div>
-        <h2>Pressure Cooker</h2>
-        <p>Trapped steam at 1 bar boils water at 120°C. A 100 g weight on the vent keeps it there.</p>
+        <picture class="thumb">
+          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/pressure-cooker-dark-800.webp 800w, /thumbs/pressure-cooker-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)">
+          <img src="/thumbs/pressure-cooker-800.webp" srcset="/thumbs/pressure-cooker-800.webp 800w, /thumbs/pressure-cooker-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+        </picture>
+        <div class="body">
+          <div class="num">No. 03</div>
+          <h2>Pressure Cooker</h2>
+          <p>Trapped steam at 1 bar boils water at 120°C. A 100 g weight on the vent keeps it there.</p>
+        </div>
       </a>
       <a class="card" href="/appliances/door-knob">
-        <div class="num">No. 04</div>
-        <h2>Door Knob</h2>
-        <p>A 45° turn, a square spindle, and a cam pull a spring bolt 13 mm back into the door.</p>
+        <picture class="thumb">
+          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/door-knob-dark-800.webp 800w, /thumbs/door-knob-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)">
+          <img src="/thumbs/door-knob-800.webp" srcset="/thumbs/door-knob-800.webp 800w, /thumbs/door-knob-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+        </picture>
+        <div class="body">
+          <div class="num">No. 04</div>
+          <h2>Door Knob</h2>
+          <p>A 45° turn, a square spindle, and a cam pull a spring bolt 13 mm back into the door.</p>
+        </div>
       </a>
       <a class="card" href="/appliances/door-lock">
-        <div class="num">No. 05</div>
-        <h2>Door Lock</h2>
-        <p>Five pins, one shear line. The right key lifts every pin to the same height.</p>
+        <picture class="thumb">
+          <source media="(prefers-color-scheme: dark)" type="image/webp" srcset="/thumbs/door-lock-dark-800.webp 800w, /thumbs/door-lock-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)">
+          <img src="/thumbs/door-lock-800.webp" srcset="/thumbs/door-lock-800.webp 800w, /thumbs/door-lock-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+        </picture>
+        <div class="body">
+          <div class="num">No. 05</div>
+          <h2>Door Lock</h2>
+          <p>Five pins, one shear line. The right key lifts every pin to the same height.</p>
+        </div>
       </a>
     </div>
 
-    <h2 class="section">Coming soon</h2>
-    <div class="grid" id="soon">
-      <div class="card soon">
-        <div class="num">No. 06</div>
-        <h2>Espresso Machine</h2>
-        <p>A pump pushes water at 9 bar through 18 g of coffee in about 25 seconds.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 07</div>
-        <h2>Mixer Grinder</h2>
-        <p>A 750 W universal motor spins the blades at up to 18,000 rpm.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 08</div>
-        <h2>Dishwasher</h2>
-        <p>Spray arms spin on water jets. A heater takes the water to 65°C, then a pump drains it.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 09</div>
-        <h2>Washing Machine · Top Load</h2>
-        <p>An agitator or pulsator at the bottom churns the clothes in an upright drum.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 10</div>
-        <h2>Washing Machine · Front Load</h2>
-        <p>A horizontal drum lifts clothes and drops them. Spin speed goes up to 1,400 rpm.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 11</div>
-        <h2>Window AC</h2>
-        <p>One box, two sides. A compressor pumps heat from the room coil to the coil outside.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 12</div>
-        <h2>HVAC</h2>
-        <p>A furnace or heat pump, a blower, and ducts move conditioned air through the whole house.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 13</div>
-        <h2>Electric Chimney</h2>
-        <p>A fan pulls about 1,200 m³ of air an hour through mesh filters that catch the oil.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 14</div>
-        <h2>Microwave</h2>
-        <p>A magnetron makes 2.45 GHz waves that shake water molecules until the food heats up.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 15</div>
-        <h2>Air Fryer</h2>
-        <p>A heating coil and a fan blow air at 200°C around the food, so the outside gets crisp.</p>
-      </div>
-      <div class="card soon">
-        <div class="num">No. 16</div>
-        <h2>Landline Phone</h2>
-        <p>A carbon microphone turns your voice into a varying current on a copper pair.</p>
-      </div>
-    </div>
+    <h2 class="section">Coming soon <span class="count">11</span></h2>
+    <ol class="soon" id="soon">
+      <li><span class="num">06</span><div><h2>Espresso Machine</h2><p>A pump pushes water at 9 bar through 18 g of coffee in about 25 seconds.</p></div></li>
+      <li><span class="num">07</span><div><h2>Mixer Grinder</h2><p>A 750 W universal motor spins the blades at up to 18,000 rpm.</p></div></li>
+      <li><span class="num">08</span><div><h2>Dishwasher</h2><p>Spray arms spin on water jets. A heater takes the water to 65°C, then a pump drains it.</p></div></li>
+      <li><span class="num">09</span><div><h2>Washing Machine · Top Load</h2><p>An agitator or pulsator at the bottom churns the clothes in an upright drum.</p></div></li>
+      <li><span class="num">10</span><div><h2>Washing Machine · Front Load</h2><p>A horizontal drum lifts clothes and drops them. Spin speed goes up to 1,400 rpm.</p></div></li>
+      <li><span class="num">11</span><div><h2>Window AC</h2><p>One box, two sides. A compressor pumps heat from the room coil to the coil outside.</p></div></li>
+      <li><span class="num">12</span><div><h2>HVAC</h2><p>A furnace or heat pump, a blower, and ducts move conditioned air through the whole house.</p></div></li>
+      <li><span class="num">13</span><div><h2>Electric Chimney</h2><p>A fan pulls about 1,200 m³ of air an hour through mesh filters that catch the oil.</p></div></li>
+      <li><span class="num">14</span><div><h2>Microwave</h2><p>A magnetron makes 2.45 GHz waves that shake water molecules until the food heats up.</p></div></li>
+      <li><span class="num">15</span><div><h2>Air Fryer</h2><p>A heating coil and a fan blow air at 200°C around the food, so the outside gets crisp.</p></div></li>
+      <li><span class="num">16</span><div><h2>Landline Phone</h2><p>A carbon microphone turns your voice into a varying current on a copper pair.</p></div></li>
+    </ol>
 
     <footer>Built with three.js by <a href="https://darshanpania.me">Darshan Pania</a>. Source on <a href="https://github.com/darshanpania/howshitworks">GitHub</a>.</footer>
   </main>
