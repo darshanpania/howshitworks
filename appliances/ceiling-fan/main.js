@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
-import { createParts } from '../../src/engine/parts.js';
+import { createParts, looksInside } from '../../src/engine/parts.js';
 import { createCallouts } from '../../src/engine/callouts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
@@ -147,14 +147,14 @@ const story = createStoryUI({
 bindRange('speed', v => { state.speed = v; });
 createCallouts(stage, { parts, state, story: FAN_STORY });
 
-// Unfocused parts fade; in cutaway steps the rotor casing and top cover go glassy.
+// When a step looks inside, unfocused parts fade; in cutaway steps the rotor casing and top cover go glassy.
 const focusStyle = {
   highlight: 0.25,
   opacity(name, mesh, hot) {
     let op = 1;
     if (name==='rotor' && state.cut && !hot) op = 0.22;
     if (mesh.userData.cutaway && (state.cut || hot)) op = 0.2;
-    if (state.focus.length && !hot) op = Math.min(op, 0.35);
+    if (state.focus.length && !hot && looksInside(state)) op = Math.min(op, 0.35);
     return op;
   },
 };

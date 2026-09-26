@@ -29,6 +29,17 @@ export function xray(material) {
 // How far a part at this opacity has turned to x-ray: solid at 1, fully ghosted by 0.4.
 export const ghostAmount = alpha => Math.min(1, Math.max(0, (0.97 - alpha) / 0.57));
 
+// A step looks inside when it cuts the case open or pulls the parts apart. Only then do the
+// parts out of focus fade to x-ray; otherwise the appliance stays solid and the part in
+// focus is marked by its copper rim and the callout.
+export const looksInside = state => !!state.cut || state.explode > 0.12;
+
+// The first view of every appliance is solid: while the intro assembles the model, focus
+// and cutaways wait, then the first step opens up. A tap, a key or ?capture skips the wait.
+// It counts animation time (the capped frame time), so a slow first frame on a phone that
+// is still compiling shaders does not use it up before anything is on screen.
+const INTRO_S = 2.4;
+
 // A registry of named, explodable parts. Each part has a home position and an
 // offset it moves along as the explode amount goes from 0 to 1.
 // lively: true gives each part its own springy, slightly staggered explode, fades focus
@@ -36,6 +47,12 @@ export const ghostAmount = alpha => Math.min(1, Math.max(0, (0.97 - alpha) / 0.5
 export function createParts(root, { shadows = false, lively = false } = {}) {
   const parts = {};
   let order = 0, clock = 0;
+  const capture = /[?&]capture\b/.test(globalThis.location?.search ?? '');
+  let holdLeft = lively && !capture ? INTRO_S : 0;
+  if (holdLeft && typeof document !== 'undefined') {
+    const skip = () => { holdLeft = 0; };
+    ['pointerdown', 'keydown'].forEach(type => document.addEventListener(type, skip, { once: true, capture: true }));
+  }
 
   function add(name, object, home, offset, parent = root) {
     const group = new THREE.Group(); group.add(object); group.position.copy(home); parent.add(group);
@@ -109,6 +126,12 @@ export function createParts(root, { shadows = false, lively = false } = {}) {
     dt = Math.min(dt, 0.1);
     const per = r => (r >= 1 ? 1 : 1 - (1 - r) ** (dt * 60));
     state.explode += (state.targetExplode - state.explode) * per(rate);
+    // During the intro the page's own style sees no focus and no cutaway, so it draws the
+    // appliance whole, with the same rules for water, flames and the rest.
+    const holding = holdLeft > 0;
+    holdLeft -= dt;
+    const { focus, cut } = state;
+    if (holding) { state.focus = []; state.cut = false; }
     if (lively && rate < 1) {
       clock += dt;
       springExplode(state.explode, dt);
@@ -117,6 +140,7 @@ export function createParts(root, { shadows = false, lively = false } = {}) {
       explode(state.explode);
       applyFocus(state.focus, style);
     }
+    if (holding) { state.focus = focus; state.cut = cut; }
   }
 
   return { parts, add, explode, applyFocus, update, materials };

@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
-import { createParts } from '../../src/engine/parts.js';
+import { createParts, looksInside } from '../../src/engine/parts.js';
 import { createCallouts } from '../../src/engine/callouts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
@@ -144,7 +144,7 @@ const focusStyle = {
   opacity(name, mesh, hot) {
     let alpha = 1;
     if (state.cut && INSIDE.includes(name)) alpha = hot ? 0.35 : 0.18; // cut away to show the inside
-    if (state.focus.length && !hot && !INSIDE.includes(name)) alpha = Math.min(alpha, 0.3);
+    if (state.focus.length && !hot && !INSIDE.includes(name) && looksInside(state)) alpha = Math.min(alpha, 0.3);
     if (mesh.userData.water) alpha *= 0.55;
     if (mesh.userData.flame) alpha *= state.flame;
     return alpha;

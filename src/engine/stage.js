@@ -34,7 +34,9 @@ export function createStage(canvas, {
   // ?capture skips the intro and exposes the camera, for rendering the landing-page thumbnails.
   const capture = /[?&]capture\b/.test(globalThis.location?.search ?? '');
   if (capture) Object.assign(globalThis, { __hswCam: cam, __hswScene: scene });
-  const intro = { t: reducedMotion || capture ? 1 : 0, start: performance.now() };
+  // Intro time is animation time: each frame adds at most 50 ms, so a long first frame
+  // (shaders compiling on a slow phone) does not skip the swing.
+  const intro = { t: reducedMotion || capture ? 1 : 0, last: 0 };
   canvas.addEventListener('pointerdown', () => { intro.t = 1; });
   const easeOut = t => 1 - (1 - t) ** 3;
 
@@ -48,7 +50,9 @@ export function createStage(canvas, {
   // Hooks: extra passes before the frame (contact shadows) and overlays after it (callouts).
   const before = [], after = [];
   function render() {
-    if (intro.t < 1) intro.t = Math.min(1, (performance.now() - intro.start) / 2200);
+    const now = performance.now();
+    if (intro.t < 1) intro.t = Math.min(1, intro.t + (intro.last ? Math.min(0.05, (now - intro.last) / 1000) : 0) / 2.2);
+    intro.last = now;
     const away = 1 - easeOut(intro.t);
     const r = cam.r * (1 + 0.45 * away), theta = cam.theta - 1.1 * away, phi = cam.phi - 0.25 * away;
     camera.position.set(
