@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { createStage, addFloor } from '../../src/engine/stage.js';
-import { createParts } from '../../src/engine/parts.js';
+import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
+import { createParts, looksInside } from '../../src/engine/parts.js';
+import { createCallouts } from '../../src/engine/callouts.js';
 import { createStoryUI } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -16,13 +17,8 @@ const stage = createStage(document.getElementById('c'), {
   fov: 36, pbr: true, camera: { theta: 0.5, phi: 1.05, r: 44, target: [-3, -1, 0] }, zoom: [14, 70], phiLimit: 0.25,
 });
 const { scene } = stage;
-scene.add(new THREE.HemisphereLight(0xffffff, 0x27313a, 0.5));
-const key = new THREE.DirectionalLight(0xfff3df, 1.4); key.position.set(10, 16, 14);
-key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 4; key.shadow.bias = -0.0005;
-Object.assign(key.shadow.camera, { left: -20, right: 20, top: 20, bottom: -20, near: 1, far: 60 });
-scene.add(key);
-const rim = new THREE.DirectionalLight(0x8db4e5, 0.6); rim.position.set(-10, 6, -12); scene.add(rim);
-addFloor(stage, -10, { size: 40, opacity: 0.14 });
+addStudioLights(stage, { key: [10, 16, 14], extent: 20, far: 60, scale: 2.5 });
+addFloor(stage, -10, { size: 40, opacity: 0.14, height: 22 });
 
 // ---------- Materials ----------
 const M = createMaterials({
@@ -56,7 +52,7 @@ const alongZ = (object, dir) => { object.rotation.x = dir * Math.PI / 2; return 
 // ---------- Parts ----------
 const root = new THREE.Group(); scene.add(root);
 const door = new THREE.Group(); root.add(door); // everything that moves with the door
-const { add, update } = createParts(root, { shadows: true, lively: true });
+const { parts, add, update } = createParts(root, { shadows: true, lively: true });
 
 // Door slab: a 16 × 16 cm piece near the edge, with the 54 mm cross bore.
 {
@@ -71,8 +67,8 @@ const { add, update } = createParts(root, { shadows: true, lively: true });
 // Jamb with its door stop, and the strike plate screwed to its face.
 {
   const g = new THREE.Group();
-  const jamb = box([4, 16, 5.2], M.jamb, [LATCH.jambGap + 2, 0, -0.6]); jamb.userData.cutaway = true; g.add(jamb);
-  const stop = box([1.2, 16, 1.2], M.jamb, [LATCH.jambGap - 0.6, 0, -2.6]); stop.userData.cutaway = true; g.add(stop);
+  const jamb = box([4, 16, 5.2], M.jamb, [LATCH.jambGap + 2, 0, -0.6], 0.15); jamb.userData.cutaway = true; g.add(jamb);
+  const stop = box([1.2, 16, 1.2], M.jamb, [LATCH.jambGap - 0.6, 0, -2.6], 0.1); stop.userData.cutaway = true; g.add(stop);
   add('jamb', g, new THREE.Vector3(), new THREE.Vector3(9, 0, 0));
   const strike = new THREE.Group();
   strike.add(holedPlate({ z: [-1.4, 1.9], h: 5, hole: [2 * LATCH.hole, 1.8], thick: 0.15, x0: LATCH.jambGap - 0.02, mat: M.brushed }));
@@ -169,13 +165,14 @@ const story = createStoryUI({
   story: KNOB_STORY, state,
   onStep: s => { state.focus = s.focus; state.cut = s.cut; state.mode = s.mode; state.t = 0; },
 });
+createCallouts(stage, { parts, state, story: KNOB_STORY });
 
 const focusStyle = {
   highlight: 0.18,
   opacity(name, mesh, hot) {
     let alpha = 1;
     if (mesh.userData.cutaway && state.cut) alpha = 0.16;
-    if (state.focus.length && !hot) alpha = Math.min(alpha, 0.3);
+    if (state.focus.length && !hot && looksInside(state)) alpha = Math.min(alpha, 0.3);
     return alpha;
   },
 };
@@ -192,7 +189,7 @@ function showReadout() {
 
 // ---------- Frame ----------
 startLoop(stage, dt => {
-  update(state, focusStyle, reduced ? 1 : 0.09);
+  update(state, focusStyle, reduced ? 1 : 0.09, dt);
   if (state.playing) state.t = (state.t + dt) % PERIOD[state.mode];
   const target = pose(state.mode, state.t);
   // Ease toward the pose so a step change never jumps; the bolt follows the door exactly.

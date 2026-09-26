@@ -16,139 +16,256 @@
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
+  <meta property="og:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. The copper cube logo, opened to show gears, a copper coil and a spring.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="How Shit Works">
   <meta name="twitter:description" content="Everyday electrical and mechanical appliances, shown from the inside in 3D.">
   <meta name="twitter:image" content="https://howshitworks.darshanpania.me/brand/og-image.jpg">
-  <meta name="twitter:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
+  <meta name="twitter:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. The copper cube logo, opened to show gears, a copper coil and a spring.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <script>try{var t=localStorage.getItem('hsw-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
   <link rel="stylesheet" href="/src/base.css">
   <style>
-    /* Page-local text copper: the light --copper is 3.7:1 on white, below AA for small text. */
-    :root { --copper-text: #A2562A; --thumb-bg: #D5DCE3; }
-    /* --thumb-bg matches the backdrop the light model renders were captured on. */
-    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --copper-text: var(--copper); --thumb-bg: var(--bg); } }
-    :root[data-theme="dark"] { --copper-text: var(--copper); --thumb-bg: var(--bg); }
+    /* Page-local text copper: the light --copper is 3.7:1 on the paper, below AA for small text. */
+    :root { --copper-text: #A2562A; --thumb-bg: var(--stage-hi); --grid-a: color-mix(in srgb, var(--blueprint) 13%, transparent); --grid-b: color-mix(in srgb, var(--blueprint) 6%, transparent); --glare: rgb(255 255 255 / .35); }
+    @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --copper-text: var(--copper); --glare: rgb(160 210 255 / .08); } }
+    :root[data-theme="dark"] { --copper-text: var(--copper); --glare: rgb(160 210 255 / .08); }
     /* Each card has a light and a dark render; show the one that matches the theme. */
     .thumb .dark { display: none; }
     @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .thumb .light { display: none; } :root:not([data-theme="light"]) .thumb .dark { display: block; } }
     :root[data-theme="dark"] .thumb .light { display: none; }
     :root[data-theme="dark"] .thumb .dark { display: block; }
-    .wrap { position: relative; }
-    .site-header { position: absolute; top: 40px; right: 16px; }
-    @media (min-width: 640px) { .site-header { top: 56px; right: 24px; } }
-    .wrap { max-width: 1120px; margin: 0 auto; padding: 40px 16px 56px; }
-    @media (min-width: 640px) { .wrap { padding: 56px 24px 64px; } }
-    h1 { font: 800 clamp(40px, 8vw, 72px)/1 var(--font-display, "Syne", sans-serif); margin: 12px 0 16px; letter-spacing: -.02em; }
-    .lede { max-width: 56ch; color: var(--muted); font-size: 17px; margin: 0 0 40px; }
 
-    /* Live appliances. 1 column on phones, 2 on tablets, 3 on desktop; the first card is
-       featured and spans two columns, so five cards always fill whole rows. */
+    body { background: var(--grain), var(--bg); }
+    /* Drafting-paper grid behind the hero, fading out toward the cards. */
+    .paper {
+      position: absolute; inset: 0 0 auto; height: 980px; pointer-events: none;
+      background-image: linear-gradient(var(--grid-a) 1px, transparent 1px), linear-gradient(90deg, var(--grid-a) 1px, transparent 1px),
+        linear-gradient(var(--grid-b) 1px, transparent 1px), linear-gradient(90deg, var(--grid-b) 1px, transparent 1px);
+      background-size: 120px 120px, 120px 120px, 24px 24px, 24px 24px; background-position: -1px -1px;
+      -webkit-mask-image: radial-gradient(70% 75% at 68% 30%, #000 25%, transparent 78%); mask-image: radial-gradient(70% 75% at 68% 30%, #000 25%, transparent 78%);
+    }
+    .wrap { position: relative; max-width: 1200px; margin: 0 auto; padding: 20px 16px 56px; }
+    @media (min-width: 640px) { .wrap { padding: 28px 24px 72px; } }
+    .topbar { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .mark { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; font: 700 15px/1 var(--font-display); letter-spacing: -.01em; }
+    .mark img { display: block; transition: transform .5s cubic-bezier(.3, 1.6, .5, 1); }
+    .mark:hover img { transform: rotate(-12deg) scale(1.08); }
+
+    /* ---------- Hero ---------- */
+    .hero { display: grid; grid-template-columns: 1fr; align-items: center; gap: 8px; margin: 28px 0 24px; }
+    @media (min-width: 1000px) { .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 24px; margin: 48px 0 40px; } }
+    .hero-copy { position: relative; z-index: 1; }
+    h1 { font: 800 clamp(46px, 5.8vw, 86px)/.92 var(--font-display); margin: 14px 0 20px; letter-spacing: -.03em; }
+    h1 .dot { color: var(--accent); }
+    .lede { max-width: 42ch; color: var(--muted); font-size: 17px; line-height: 1.6; margin: 0 0 28px; }
+    .cta { display: flex; flex-wrap: wrap; gap: 10px; }
+    .cta .btn { text-decoration: none; padding: 12px 20px; border-radius: 999px; }
+    .cta .btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; transition: transform .2s; }
+    .cta .btn:hover svg { transform: translateX(3px); }
+    .cta .btn.primary { box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--accent) 80%, transparent); }
+    .stats { display: flex; gap: 28px; margin: 36px 0 0; padding: 16px 0 0; border-top: 1px solid var(--line); max-width: 420px; }
+    .stats div { display: grid; gap: 6px; }
+    .stats dt { font: 500 10.5px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); order: 2; }
+    .stats dd { margin: 0; font: 700 28px/1 var(--font-display); font-variant-numeric: tabular-nums; }
+
+    .hero-stage { position: relative; height: clamp(340px, 88vw, 460px); margin: 0 -16px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+    @media (min-width: 1000px) { .hero-stage { height: min(620px, 72vh); min-height: 480px; margin: 0 -24px 0 0; } }
+    /* A pool of studio light under the box. */
+    .hero-stage::before { content: ""; position: absolute; inset: 4% 6%; border-radius: 50%; background: radial-gradient(closest-side, var(--stage-hi), transparent); opacity: .9; }
+    .hero-stage canvas { position: relative; display: block; width: 100%; height: 100%; opacity: 0; transition: opacity .8s ease; touch-action: pan-y; }
+    .hero-fallback { position: absolute; left: 50%; top: 50%; width: 30%; max-width: 180px; transform: translate(-50%, -50%); transition: opacity .6s ease; }
+    .hero-stage.ready canvas { opacity: 1; }
+    .hero-stage.ready .hero-fallback { opacity: 0; }
+    .hero-labels { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .6s ease; }
+    .hero-labels.on { opacity: 1; }
+    .hero-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+    .hero-lines path { fill: none; stroke: color-mix(in srgb, var(--ink) 55%, transparent); stroke-width: 1.1; stroke-dasharray: 1; }
+    .hero-lines circle { fill: var(--accent); stroke: var(--bg); stroke-width: 1.5; }
+    .hero-labels.on .hero-lines path { animation: hero-draw 1s .1s cubic-bezier(.3, .6, .2, 1) both; }
+    @keyframes hero-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+    .hero-note { position: absolute; left: 0; top: 0; font: 500 10.5px/18px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; color: var(--ink); }
+    /* One button opens and shuts the box for keyboards; a click anywhere on the stage does the same. */
+    .hero-toggle {
+      position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); min-height: 44px; padding: 0 16px; border: 0; border-radius: 999px;
+      background: none; font: 500 10.5px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); white-space: nowrap; cursor: pointer;
+    }
+    .hero-toggle:hover { color: var(--ink); }
+    .hero-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
+    .hero-stage:not(.ready) .hero-toggle { visibility: hidden; }
+    @media (max-width: 640px) { .hero-note { font-size: 9px; letter-spacing: .08em; } }
+    /* Phones: the 3D box comes straight after the title, so the first screen shows it. */
+    @media (max-width: 999px) {
+      .hero { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+      .hero-copy { display: contents; }
+      .hero-copy .kicker { order: 1; } .hero h1 { order: 2; margin-bottom: 4px; } .hero-stage { order: 3; }
+      .lede { order: 4; margin-top: 8px; } .cta { order: 5; } .stats { order: 6; }
+    }
+    @media (max-width: 640px) {
+      .hero-stage { height: clamp(300px, 80vw, 380px); }
+      .stats { gap: 22px; margin-top: 28px; } .stats dd { font-size: 22px; }
+    }
+
+    /* ---------- The collection ---------- */
+    .section { display: flex; align-items: baseline; gap: 10px; font: 500 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 56px 0 16px; }
+    .section .count { letter-spacing: .04em; color: var(--copper-text); }
+    .section::after { content: ""; flex: 1; height: 1px; background: var(--line); align-self: center; }
+    /* 1 column on phones, 2 on tablets, 3 on desktop; the first card is featured and spans
+       two columns, so five cards always fill whole rows. */
     .grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
     @media (min-width: 640px) { .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (min-width: 1000px) { .grid { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; } }
     .card {
-      display: flex; flex-direction: column; min-width: 0; text-decoration: none; overflow: hidden;
-      background: var(--panel); border: 1px solid var(--line); border-radius: 12px;
-      transition: border-color .15s, box-shadow .15s;
+      --rx: 0deg; --ry: 0deg; --mx: 50%; --my: 50%;
+      position: relative; display: flex; flex-direction: column; min-width: 0; text-decoration: none; overflow: hidden;
+      background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+      transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry));
+      transition: transform .5s cubic-bezier(.2, .7, .2, 1), box-shadow .4s, border-color .2s;
     }
-    .card:hover { border-color: var(--accent); }
+    .card::after { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s; background: radial-gradient(420px circle at var(--mx) var(--my), var(--glare), transparent 45%); }
+    .card:hover { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); box-shadow: var(--shadow-soft), 0 30px 60px -30px rgb(40 30 10 / .35); transform: perspective(1000px) rotateX(var(--rx)) rotateY(var(--ry)) translateY(-4px); }
+    .card:hover::after { opacity: 1; }
     .card:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-color: var(--accent); }
-    .thumb { display: block; aspect-ratio: 16 / 10; background: var(--thumb-bg); border-bottom: 1px solid var(--line); overflow: hidden; }
-    .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .4s ease; }
-    .card:hover .thumb img { transform: scale(1.03); }
-    @media (prefers-reduced-motion: reduce) { .card:hover .thumb img { transform: none; } }
-    .body { padding: 16px 20px 20px; }
-    .card .num { font: 500 12px/1 var(--font-mono, "IBM Plex Mono", monospace); color: var(--copper-text); letter-spacing: .04em; }
-    .card h2 { font: 700 22px/1.15 var(--font-display, "Syne", sans-serif); margin: 8px 0 6px; }
+    .thumb { position: relative; display: block; aspect-ratio: 16 / 10; background: var(--thumb-bg); border-bottom: 1px solid var(--line); overflow: hidden; }
+    .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; transition: transform .7s cubic-bezier(.2, .7, .2, 1); }
+    .card:hover .thumb img { transform: scale(1.045); }
+    /* Registration marks in two corners, like a print proof. */
+    .thumb::before, .thumb::after { content: ""; position: absolute; z-index: 1; width: 14px; height: 14px; border: 0 solid color-mix(in srgb, var(--blueprint) 45%, transparent); }
+    .thumb::before { left: 12px; top: 12px; border-width: 1px 0 0 1px; }
+    .thumb::after { right: 12px; bottom: 12px; border-width: 0 1px 1px 0; }
+    .body { display: flex; flex-direction: column; flex: 1; padding: 16px 20px 18px; }
+    .card .num { font: 500 12px/1 var(--font-mono); color: var(--copper-text); letter-spacing: .04em; }
+    .card h2 { font: 700 22px/1.15 var(--font-display); margin: 8px 0 6px; width: fit-content; }
     .card p { margin: 0; color: var(--muted); font-size: 14px; }
+    .meta { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: auto; padding-top: 16px; }
+    .spec, .go { font: 500 10.5px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+    .go { display: inline-flex; align-items: center; gap: 6px; color: var(--copper-text); opacity: 0; transform: translateX(-6px); transition: opacity .25s, transform .25s; }
+    .go svg { width: 13px; height: 13px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+    .card:hover .go, .card:focus-visible .go { opacity: 1; transform: none; }
+    @media (hover: none) { .go { opacity: 1; transform: none; } }
     @media (min-width: 640px) {
       .featured { grid-column: span 2; display: grid; grid-template-columns: 11fr 9fr; }
       .featured .thumb { aspect-ratio: auto; min-height: 100%; border-bottom: 0; border-right: 1px solid var(--line); }
-      .featured .body { align-self: center; padding: 24px 28px; }
-      .featured h2 { font-size: clamp(26px, 3vw, 34px); margin: 10px 0 10px; }
-      .featured p { font-size: 15px; }
+      .featured .body { justify-content: center; padding: 28px 32px; }
+      .featured h2 { font-size: clamp(28px, 3.2vw, 40px); margin: 10px 0 12px; }
+      .featured p { font-size: 15.5px; }
+      .featured .meta { margin-top: 0; padding-top: 28px; }
     }
+    @media (prefers-reduced-motion: reduce) {
+      .card, .card:hover { transform: none; }
+      .card:hover .thumb img { transform: none; }
+    }
+    /* The card title flies into the appliance page's title (cross-document view transitions). */
+    a[href="/appliances/ceiling-fan"] h2 { view-transition-name: t-ceiling-fan; }
+    a[href="/appliances/toaster"] h2 { view-transition-name: t-toaster; }
+    a[href="/appliances/pressure-cooker"] h2 { view-transition-name: t-pressure-cooker; }
+    a[href="/appliances/door-knob"] h2 { view-transition-name: t-door-knob; }
+    a[href="/appliances/door-lock"] h2 { view-transition-name: t-door-lock; }
 
     /* Coming soon: a compact numbered list, secondary to the live cards. */
-    .section { display: flex; align-items: baseline; gap: 10px; font: 500 11px/1 var(--font-mono, "IBM Plex Mono", monospace); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 56px 0 8px; }
-    .section .count { letter-spacing: .04em; color: var(--copper-text); }
     .soon { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; column-gap: 32px; }
     @media (min-width: 640px) { .soon { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (min-width: 1000px) { .soon { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    .soon li { display: grid; grid-template-columns: 28px 1fr; gap: 8px; padding: 11px 0; border-top: 1px solid var(--line); min-width: 0; }
-    .soon .num { font: 500 12px/20px var(--font-mono, "IBM Plex Mono", monospace); color: var(--muted); }
-    .soon h2 { font: 600 15px/20px var(--font-display, "Syne", sans-serif); margin: 0; color: var(--ink); }
+    .soon li { display: grid; grid-template-columns: 28px 1fr; gap: 8px; padding: 12px 0; border-top: 1px dashed var(--line); min-width: 0; }
+    .soon .num { font: 500 12px/20px var(--font-mono); color: var(--muted); }
+    .soon h2 { font: 600 15px/20px var(--font-display); margin: 0; color: var(--ink); }
     .soon p { margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
     @media (max-width: 639px) { .soon p { display: none; } }
-    footer { margin-top: 48px; color: var(--muted); font-size: 13px; }
+    footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
   </style>
 </head>
 <body>
+  <div class="paper" aria-hidden="true"></div>
   <main class="wrap">
-    <div class="site-header" id="site-header"></div>
-    <img class="site-logo" src="/brand/logo.svg" alt="" width="56" height="56">
-    <div class="kicker">Open it up</div>
-    <h1>How Shit Works</h1>
-    <p class="lede">Everyday appliances, taken apart in 3D. Each one is a short story: where the power comes in, what moves, and why it does the job.</p>
+    <header class="topbar">
+      <a class="mark" href="/" aria-label="How Shit Works, home"><img src="/brand/logo.svg" alt="" width="36" height="36"><span>How Shit Works</span></a>
+      <div class="site-header" id="site-header"></div>
+    </header>
 
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="kicker">Open it up</div>
+        <h1>How Shit Works<span class="dot">.</span></h1>
+        <p class="lede">Everyday appliances, taken apart in 3D. Each one is a short story: where the power comes in, what moves, and why it does the job.</p>
+        <div class="cta">
+          <a class="btn primary" href="/appliances/ceiling-fan">Start with the ceiling fan <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
+          <a class="btn" href="#list">See all five</a>
+        </div>
+        <dl class="stats">
+          <div><dt>Appliances</dt><dd>05</dd></div>
+          <div><dt>Steps</dt><dd>36</dd></div>
+          <div><dt>On the bench</dt><dd>11</dd></div>
+        </dl>
+      </div>
+      <div class="hero-stage" id="hero">
+        <img class="hero-fallback" src="/brand/logo.svg" alt="" width="180" height="180">
+        <canvas id="hero-canvas" role="img" aria-label="A copper cube, the site logo, opens up to show gears, a copper coil and a spring inside."></canvas>
+        <div class="hero-labels" id="hero-labels"></div>
+        <button class="hero-toggle" id="hero-toggle" type="button" aria-pressed="true">Shut the box</button>
+      </div>
+    </section>
+
+    <h2 class="section" id="collection">The collection <span class="count">05</span></h2>
     <div class="grid" id="list">
       <a class="card featured" href="/appliances/ceiling-fan">
         <span class="thumb">
-          <img class="light" src="/thumbs/ceiling-fan-800.webp" srcset="/thumbs/ceiling-fan-800.webp 800w, /thumbs/ceiling-fan-1280.webp 1280w" sizes="(min-width: 1000px) 440px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="eager" fetchpriority="high" decoding="async">
-          <img class="dark" src="/thumbs/ceiling-fan-dark-800.webp" srcset="/thumbs/ceiling-fan-dark-800.webp 800w, /thumbs/ceiling-fan-dark-1280.webp 1280w" sizes="(min-width: 1000px) 440px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="eager" fetchpriority="high" decoding="async">
+          <img class="light" src="/thumbs/ceiling-fan-800.webp" srcset="/thumbs/ceiling-fan-800.webp 800w, /thumbs/ceiling-fan-1280.webp 1280w" sizes="(min-width: 1000px) 560px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="eager" fetchpriority="high" decoding="async">
+          <img class="dark" src="/thumbs/ceiling-fan-dark-800.webp" srcset="/thumbs/ceiling-fan-dark-800.webp 800w, /thumbs/ceiling-fan-dark-1280.webp 1280w" sizes="(min-width: 1000px) 560px, (min-width: 640px) calc(55vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="eager" fetchpriority="high" decoding="async">
         </span>
         <div class="body">
           <div class="num">No. 01</div>
           <h2>Ceiling Fan</h2>
           <p>An outer-rotor induction motor, a capacitor to get it started, and three blades pitched at 11°.</p>
+          <div class="meta"><span class="spec">7 steps · 375 rpm field</span><span class="go" aria-hidden="true">Open <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
         </div>
       </a>
       <a class="card" href="/appliances/toaster">
         <span class="thumb">
-          <img class="light" src="/thumbs/toaster-800.webp" srcset="/thumbs/toaster-800.webp 800w, /thumbs/toaster-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
-          <img class="dark" src="/thumbs/toaster-dark-800.webp" srcset="/thumbs/toaster-dark-800.webp 800w, /thumbs/toaster-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="light" src="/thumbs/toaster-800.webp" srcset="/thumbs/toaster-800.webp 800w, /thumbs/toaster-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="dark" src="/thumbs/toaster-dark-800.webp" srcset="/thumbs/toaster-dark-800.webp 800w, /thumbs/toaster-dark-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
         </span>
         <div class="body">
           <div class="num">No. 02</div>
           <h2>Toaster</h2>
           <p>Nichrome wires, a bimetal strip, and an electromagnet that holds the bread down.</p>
+          <div class="meta"><span class="spec">7 steps · 600 °C wire</span><span class="go" aria-hidden="true">Open <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
         </div>
       </a>
       <a class="card" href="/appliances/pressure-cooker">
         <span class="thumb">
-          <img class="light" src="/thumbs/pressure-cooker-800.webp" srcset="/thumbs/pressure-cooker-800.webp 800w, /thumbs/pressure-cooker-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
-          <img class="dark" src="/thumbs/pressure-cooker-dark-800.webp" srcset="/thumbs/pressure-cooker-dark-800.webp 800w, /thumbs/pressure-cooker-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="light" src="/thumbs/pressure-cooker-800.webp" srcset="/thumbs/pressure-cooker-800.webp 800w, /thumbs/pressure-cooker-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="dark" src="/thumbs/pressure-cooker-dark-800.webp" srcset="/thumbs/pressure-cooker-dark-800.webp 800w, /thumbs/pressure-cooker-dark-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
         </span>
         <div class="body">
           <div class="num">No. 03</div>
           <h2>Pressure Cooker</h2>
           <p>Trapped steam at 1 bar boils water at 120°C. A 100 g weight on the vent keeps it there.</p>
+          <div class="meta"><span class="spec">8 steps · +1 bar</span><span class="go" aria-hidden="true">Open <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
         </div>
       </a>
       <a class="card" href="/appliances/door-knob">
         <span class="thumb">
-          <img class="light" src="/thumbs/door-knob-800.webp" srcset="/thumbs/door-knob-800.webp 800w, /thumbs/door-knob-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
-          <img class="dark" src="/thumbs/door-knob-dark-800.webp" srcset="/thumbs/door-knob-dark-800.webp 800w, /thumbs/door-knob-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="light" src="/thumbs/door-knob-800.webp" srcset="/thumbs/door-knob-800.webp 800w, /thumbs/door-knob-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="dark" src="/thumbs/door-knob-dark-800.webp" srcset="/thumbs/door-knob-dark-800.webp 800w, /thumbs/door-knob-dark-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
         </span>
         <div class="body">
           <div class="num">No. 04</div>
           <h2>Door Knob</h2>
           <p>A 45° turn, a square spindle, and a cam pull a spring bolt 13 mm back into the door.</p>
+          <div class="meta"><span class="spec">7 steps · 45° turn</span><span class="go" aria-hidden="true">Open <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
         </div>
       </a>
       <a class="card" href="/appliances/door-lock">
         <span class="thumb">
-          <img class="light" src="/thumbs/door-lock-800.webp" srcset="/thumbs/door-lock-800.webp 800w, /thumbs/door-lock-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
-          <img class="dark" src="/thumbs/door-lock-dark-800.webp" srcset="/thumbs/door-lock-dark-800.webp 800w, /thumbs/door-lock-dark-1280.webp 1280w" sizes="(min-width: 1000px) 340px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="light" src="/thumbs/door-lock-800.webp" srcset="/thumbs/door-lock-800.webp 800w, /thumbs/door-lock-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="dark" src="/thumbs/door-lock-dark-800.webp" srcset="/thumbs/door-lock-dark-800.webp 800w, /thumbs/door-lock-dark-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
         </span>
         <div class="body">
           <div class="num">No. 05</div>
           <h2>Door Lock</h2>
           <p>Five pins, one shear line. The right key lifts every pin to the same height.</p>
+          <div class="meta"><span class="spec">7 steps · 5 pins</span><span class="go" aria-hidden="true">Open <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
         </div>
       </a>
     </div>
@@ -174,9 +291,29 @@
     import { track } from '/src/analytics.js';
     import { mountSiteTools } from '/src/site.js';
     mountSiteTools(document.getElementById('site-header'));
-    document.querySelectorAll('#list a.card').forEach(card => card.addEventListener('click', () => {
+    const cards = document.querySelectorAll('#list a.card');
+    cards.forEach(card => card.addEventListener('click', () => {
       track('appliance_card_clicked', { target: card.getAttribute('href').split('/').pop(), title: card.querySelector('h2').textContent });
     }));
+    document.querySelector('.cta .primary').addEventListener('click', () => track('hero_cta_clicked', { target: 'ceiling-fan' }));
+
+    // Cards lean toward the mouse and catch a soft glare where it points.
+    const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!still && matchMedia('(hover: hover) and (pointer: fine)').matches) cards.forEach(card => {
+      card.addEventListener('pointermove', e => {
+        const box = card.getBoundingClientRect(), x = (e.clientX - box.left) / box.width, y = (e.clientY - box.top) / box.height;
+        card.style.setProperty('--ry', `${((x - 0.5) * 5).toFixed(2)}deg`); card.style.setProperty('--rx', `${((0.5 - y) * 5).toFixed(2)}deg`);
+        card.style.setProperty('--mx', `${(x * 100).toFixed(1)}%`); card.style.setProperty('--my', `${(y * 100).toFixed(1)}%`);
+      });
+      card.addEventListener('pointerleave', () => { card.style.setProperty('--rx', '0deg'); card.style.setProperty('--ry', '0deg'); });
+    });
+
+    // The 3D hero loads after the page is up, so it never holds back the first paint.
+    // Without WebGL the flat logo stays in its place.
+    const startHero = () => import('/src/hero.js')
+      .then(({ mountHero }) => mountHero(document.getElementById('hero-canvas'), { labels: document.getElementById('hero-labels'), toggle: document.getElementById('hero-toggle') }))
+      .catch(() => {});
+    if ('requestIdleCallback' in window) requestIdleCallback(startHero, { timeout: 800 }); else setTimeout(startHero, 100);
   </script>
 </body>
 </html>

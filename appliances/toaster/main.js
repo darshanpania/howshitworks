@@ -2,8 +2,9 @@ import * as THREE from 'three';
 import { box, roundedRect, extrudeUp, coilGeometry, springGeometry as springShape } from '../../src/kit/shapes.js';
 import { createMaterials, linear } from '../../src/kit/materials.js';
 import { softDot, speckleTexture, heatColor, createParticles } from '../../src/kit/effects.js';
-import { createStage, addFloor } from '../../src/engine/stage.js';
+import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
+import { createCallouts } from '../../src/engine/callouts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -16,15 +17,10 @@ const stage = createStage(document.querySelector('#c'), {
   fov: 36, pbr: true, camera: { theta: 0.75, phi: 1.12, r: 11.5, target: [0, -0.35, 0] }, zoom: [6, 16], phiLimit: 0.25,
 });
 const { scene } = stage;
-scene.add(new THREE.HemisphereLight(0xffffff, 0x27313a, 0.45));
-const key = new THREE.DirectionalLight(0xfff3df, 1.6); key.position.set(5, 8, 5);
-key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 4; key.shadow.bias = -0.0005;
-Object.assign(key.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6, near: 1, far: 25 });
-scene.add(key);
-const rim = new THREE.DirectionalLight(0x8db4e5, 0.6); rim.position.set(-5, 3, -4); scene.add(rim);
+addStudioLights(stage, { key: [5, 8, 5], extent: 6, far: 25 });
 
 const FLOOR_Y = -2.2;
-addFloor(stage, FLOOR_Y, { size: 13, opacity: 0.16 });
+addFloor(stage, FLOOR_Y, { size: 13, opacity: 0.16, height: 5 });
 
 // ---------- Materials ----------
 const M = createMaterials({
@@ -202,6 +198,7 @@ const story = createStoryUI({
   },
 });
 bindRange('browning', v => { state.browning = v; });
+createCallouts(stage, { parts, state, story: TOASTER_STORY });
 
 const black = new THREE.Color(0x000000), wireColor = new THREE.Color();
 const focusStyle = {
@@ -236,7 +233,7 @@ function playSounds(dt) {
 const rawCrumb = linear(0xf1d9a6), toastCrumb = linear(0x8a4a22), rawCrust = linear(0xc98a4a), toastCrust = linear(0x3e1f0e);
 startLoop(stage, (dt, now) => {
   heatColor(state.glow, wireColor);
-  update(state, focusStyle, reduced ? 1 : 0.09);
+  update(state, focusStyle, reduced ? 1 : 0.09, dt);
 
   // Carriage: eases down against the spring, then springs up with a small bounce.
   const liftTarget = state.down ? -LIFT : 0;

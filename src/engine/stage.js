@@ -1,10 +1,12 @@
 import * as THREE from 'three';
-import { RoomEnvironment } from 'three/examples/jsm/environments/RoomEnvironment.js';
 import { trackOnce } from '../analytics.js';
 import { reducedMotion } from './loop.js';
+import { studioEnvironment, gridFloor, contactShadow } from './studio.js';
+
+export { addStudioLights } from './studio.js';
 
 // Renderer, scene, camera, orbit controls and resize for one appliance canvas.
-// pbr: true turns on linear colour, tone mapping, soft shadows and room reflections.
+// pbr: true turns on linear colour, tone mapping, soft shadows and studio reflections.
 export function createStage(canvas, {
   fov = 38, pbr = false,
   camera: view = {}, zoom = [5, 16], phiLimit = 0.2,
@@ -17,7 +19,8 @@ export function createStage(canvas, {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-    scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture;
+    renderer.toneMappingExposure = 1.05;
+    scene.environment = studioEnvironment(renderer);
   }
   const camera = new THREE.PerspectiveCamera(fov, 1, 0.1, 100);
   const cam = {
@@ -31,7 +34,9 @@ export function createStage(canvas, {
   // ?capture skips the intro and exposes the camera, for rendering the landing-page thumbnails.
   const capture = /[?&]capture\b/.test(globalThis.location?.search ?? '');
   if (capture) Object.assign(globalThis, { __hswCam: cam, __hswScene: scene });
-  const intro = { t: reducedMotion || capture ? 1 : 0, start: performance.now() };
+  // Intro time is animation time: each frame adds at most 50 ms, so a long first frame
+  // (shaders compiling on a slow phone) does not skip the swing.
+  const intro = { t: reducedMotion || capture ? 1 : 0, last: 0 };
   canvas.addEventListener('pointerdown', () => { intro.t = 1; });
   const easeOut = t => 1 - (1 - t) ** 3;
 
@@ -42,8 +47,12 @@ export function createStage(canvas, {
       renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
     }
   }
+  // Hooks: extra passes before the frame (contact shadows) and overlays after it (callouts).
+  const before = [], after = [];
   function render() {
-    if (intro.t < 1) intro.t = Math.min(1, (performance.now() - intro.start) / 2200);
+    const now = performance.now();
+    if (intro.t < 1) intro.t = Math.min(1, intro.t + (intro.last ? Math.min(0.05, (now - intro.last) / 1000) : 0) / 2.2);
+    intro.last = now;
     const away = 1 - easeOut(intro.t);
     const r = cam.r * (1 + 0.45 * away), theta = cam.theta - 1.1 * away, phi = cam.phi - 0.25 * away;
     camera.position.set(
@@ -51,9 +60,15 @@ export function createStage(canvas, {
       cam.target.y + r * Math.cos(phi),
       cam.target.z + r * Math.sin(phi) * Math.cos(theta));
     camera.lookAt(cam.target);
+    scene.updateMatrixWorld();
+    before.forEach(fn => fn());
     renderer.render(scene, camera);
+    after.forEach(fn => fn());
   }
-  return { renderer, scene, camera, cam, resize, render, pbr };
+  return {
+    renderer, scene, camera, cam, resize, render, pbr, intro, capture,
+    beforeRender: fn => before.push(fn), afterRender: fn => after.push(fn),
+  };
 }
 
 // One-finger or mouse drag orbits; two-finger pinch or the wheel zooms.
@@ -84,15 +99,21 @@ export function attachOrbit(canvas, cam, { zoom: [minR, maxR] = [5, 16], phiLimi
   canvas.addEventListener('wheel', e => { e.preventDefault(); cam.r = clampR(cam.r + e.deltaY * 0.01); trackOnce('model_zoomed', { input: 'wheel' }); }, { passive: false });
 }
 
-// Faint floor grid, plus a shadow catcher when the stage renders shadows.
-export function addFloor(stage, y, { size = 14, opacity = 0.18, shadow = stage.pbr } = {}) {
-  const grid = new THREE.GridHelper(size, size, 0x9aa5b1, 0x9aa5b1);
-  grid.position.y = y; grid.material.transparent = true; grid.material.opacity = opacity;
-  stage.scene.add(grid);
+// The studio floor: a grid that fades into the backdrop and a soft contact shadow.
+// With shadow (on by default on PBR stages) a faint catcher also takes the key light's cast shadow.
+// size is the grid's width, cell its spacing; center shifts both in x and z.
+export function addFloor(stage, y, {
+  size = 14, cell = 1, opacity = 0.18, center = [0, 0], shadow = stage.pbr,
+  contact = true, shadowSize = size * 0.75, height = size * 0.5, blur = 3, darkness = 1.25,
+} = {}) {
+  const floor = new THREE.Group(); floor.position.y = y; stage.scene.add(floor);
+  floor.add(gridFloor(size, { cell, opacity, center }));
   if (shadow) {
-    const floor = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.ShadowMaterial({ opacity: 0.16 }));
-    floor.rotation.x = -Math.PI / 2; floor.position.y = y + 0.001; floor.receiveShadow = true;
-    stage.scene.add(floor);
+    const catcher = new THREE.Mesh(new THREE.PlaneGeometry(size, size), new THREE.ShadowMaterial({ opacity: 0.07 }));
+    catcher.rotation.x = -Math.PI / 2; catcher.position.set(center[0], 0.001, center[1]); catcher.receiveShadow = true;
+    catcher.userData.noContactShadow = true;
+    floor.add(catcher);
   }
-  return grid;
+  if (contact) contactShadow(stage, floor, { size: shadowSize, height, blur, darkness, center });
+  return floor;
 }

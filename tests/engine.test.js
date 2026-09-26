@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import { createParts } from '../src/engine/parts.js';
+import { createParts, looksInside } from '../src/engine/parts.js';
 import { attachOrbit } from '../src/engine/stage.js';
 
 function fakeCanvas() {
@@ -45,6 +45,23 @@ test('focus gives each mesh its own material and highlights only focused parts',
   assert.notEqual(a, shared); assert.notEqual(a, b);
   assert.equal(a.emissiveIntensity, 0.3);
   assert.equal(b.emissiveIntensity, 0);
+});
+
+test('a step looks inside only when it cuts the case or pulls the parts apart', () => {
+  assert.equal(looksInside({ cut: false, explode: 0 }), false);
+  assert.equal(looksInside({ cut: true, explode: 0 }), true);
+  assert.equal(looksInside({ cut: false, explode: 0.35 }), true);
+});
+
+test('the intro shows the appliance whole, then gives the step its focus back', () => {
+  const { parts, add, update } = createParts(new THREE.Group(), { lively: true });
+  add('shell', mesh(), new THREE.Vector3(), new THREE.Vector3());
+  const state = { explode: 0, targetExplode: 0, focus: ['cord'], cut: true };
+  const style = { opacity: (name, m, hot) => (state.focus.length && !hot ? 0.3 : 1) };
+  update(state, style, 0.09, 1 / 60);
+  assert.equal(parts.shell.meshes[0].material.opacity, 1, 'solid while the intro plays');
+  assert.deepEqual(state.focus, ['cord']);
+  assert.equal(state.cut, true);
 });
 
 test('orbit drag stops after a cancelled touch', () => {

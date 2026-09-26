@@ -14,6 +14,15 @@ export function setTheme(theme) {
   root.dispatchEvent(new CustomEvent('themechange', { detail: theme }));
 }
 
+// Calls fn(theme) now and whenever the theme changes: from the toggle or from the system.
+export function onThemeChange(fn) {
+  if (!root) return;
+  const call = () => fn(currentTheme());
+  root.addEventListener('themechange', call);
+  if (typeof matchMedia === 'function') matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', call);
+  call();
+}
+
 // Share targets. Instagram has no web share link, so it uses the phone's share sheet when
 // there is one, and otherwise copies the link and opens Instagram.
 export function shareLinks(url, text) {

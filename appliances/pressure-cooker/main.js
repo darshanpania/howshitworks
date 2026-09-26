@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { createStage, addFloor } from '../../src/engine/stage.js';
-import { createParts } from '../../src/engine/parts.js';
+import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
+import { createParts, looksInside } from '../../src/engine/parts.js';
+import { createCallouts } from '../../src/engine/callouts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -15,14 +16,9 @@ const stage = createStage(document.querySelector('#c'), {
   fov: 36, pbr: true, camera: { theta: 0.55, phi: 1.1, r: 10, target: [0.4, -0.45, 0] }, zoom: [5, 15], phiLimit: 0.25,
 });
 const { scene } = stage;
-scene.add(new THREE.HemisphereLight(0xffffff, 0x27313a, 0.45));
-const key = new THREE.DirectionalLight(0xfff3df, 1.5); key.position.set(4, 8, 5);
-key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 4; key.shadow.bias = -0.0005;
-Object.assign(key.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 1, far: 25 });
-scene.add(key);
-const rim = new THREE.DirectionalLight(0x8db4e5, 0.6); rim.position.set(-5, 3, -4); scene.add(rim);
+addStudioLights(stage, { key: [4, 8, 5], extent: 5, far: 25 });
 const FLOOR_Y = -2.3;
-addFloor(stage, FLOOR_Y, { size: 13, opacity: 0.16 });
+addFloor(stage, FLOOR_Y, { size: 13, opacity: 0.16, height: 5 });
 
 // ---------- Materials ----------
 const M = createMaterials({
@@ -74,7 +70,7 @@ const flames = new THREE.Group();
 {
   const water = new THREE.Group();
   const body = cylinder(POT.r - 0.05, POT.r - 0.05, WATER_TOP - POT.bottom - 0.03, M.water, [0, (WATER_TOP + POT.bottom) / 2, 0], { segments: 48 });
-  body.userData.water = true; water.add(body);
+  body.userData.water = true; body.userData.noGhost = true; water.add(body);
   add('water', water, new THREE.Vector3(), new THREE.Vector3(0, 0, 0));
   const food = new THREE.Group(), pea = new THREE.SphereGeometry(0.075, 12, 8);
   for (let i = 0; i < 70; i++) {
@@ -139,6 +135,7 @@ const story = createStoryUI({
   },
 });
 bindRange('flame', v => { state.flameLevel = v; });
+createCallouts(stage, { parts, state, story: COOKER_STORY });
 const cfg = { ...COOKER };
 
 const INSIDE = ['pot', 'lid'];
@@ -147,7 +144,7 @@ const focusStyle = {
   opacity(name, mesh, hot) {
     let alpha = 1;
     if (state.cut && INSIDE.includes(name)) alpha = hot ? 0.35 : 0.18; // cut away to show the inside
-    if (state.focus.length && !hot && !INSIDE.includes(name)) alpha = Math.min(alpha, 0.3);
+    if (state.focus.length && !hot && !INSIDE.includes(name) && looksInside(state)) alpha = Math.min(alpha, 0.3);
     if (mesh.userData.water) alpha *= 0.55;
     if (mesh.userData.flame) alpha *= state.flame;
     return alpha;
@@ -188,7 +185,7 @@ function playSounds(now, boiling) {
 
 // ---------- Frame ----------
 startLoop(stage, (dt, now) => {
-  update(state, focusStyle, reduced ? 1 : 0.09);
+  update(state, focusStyle, reduced ? 1 : 0.09, dt);
 
   // Simulation: the flame slider scales how fast heat goes in.
   cfg.heatRate = COOKER.heatRate * state.flameLevel / 3;

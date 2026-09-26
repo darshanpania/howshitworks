@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { createStage, addFloor } from '../../src/engine/stage.js';
-import { createParts } from '../../src/engine/parts.js';
+import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
+import { createParts, looksInside } from '../../src/engine/parts.js';
+import { createCallouts } from '../../src/engine/callouts.js';
 import { createStoryUI } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -22,13 +23,8 @@ const stage = createStage(document.getElementById('c'), {
 });
 const { scene, cam } = stage;
 stage.camera.far = 600; stage.camera.updateProjectionMatrix(); // the scene is in millimetres
-scene.add(new THREE.HemisphereLight(0xffffff, 0x27313a, 0.55));
-const key = new THREE.DirectionalLight(0xfff3df, 1.4); key.position.set(-40, 80, 60);
-key.castShadow = true; key.shadow.mapSize.set(1024, 1024); key.shadow.radius = 4; key.shadow.bias = -0.0005;
-Object.assign(key.shadow.camera, { left: -90, right: 90, top: 90, bottom: -90, near: 1, far: 300 });
-scene.add(key);
-const rim = new THREE.DirectionalLight(0x8db4e5, 0.6); rim.position.set(60, 30, -60); scene.add(rim);
-addFloor(stage, -45, { size: 20, opacity: 0.12, shadow: false }).scale.setScalar(10); // 1 cm grid
+addStudioLights(stage, { key: [-40, 80, 60], extent: 90, far: 300, scale: 10 });
+addFloor(stage, -45, { size: 200, cell: 10, opacity: 0.12, shadow: false, center: [20, -30], height: 80, blur: 3.5 }); // 1 cm grid
 
 // ---------- Materials ----------
 const M = createMaterials({
@@ -60,7 +56,7 @@ const alongX = mesh => { mesh.rotation.z = Math.PI / 2; return mesh; };
 // ---------- Parts ----------
 const root = new THREE.Group(); scene.add(root);
 const turner = new THREE.Group(); root.add(turner); // plug, key pins, key and tailpiece turn together
-const { add, update } = createParts(root, { shadows: true, lively: true });
+const { parts, add, update } = createParts(root, { shadows: true, lively: true });
 
 // Housing: the round shell plus the tower that holds the five pin chambers.
 {
@@ -145,7 +141,7 @@ const bolt = new THREE.Group();
   const g = new THREE.Group();
   g.add(plateXY({ w: 26, h: 57, cx: 40, hole: [9, 23], thick: 1.5, z0: -61.5, mat: M.nickel }));
   g.add(plateXY({ w: 30, h: 64, cx: 40, hole: [10, 24], thick: 1.2, z0: -65.2, mat: M.nickel }));
-  const jamb = box([40, 80, 32], M.jamb, [40, 0, -81]); jamb.userData.cutaway = true; g.add(jamb);
+  const jamb = box([40, 80, 32], M.jamb, [40, 0, -81], 1.5); jamb.userData.cutaway = true; g.add(jamb);
   add('frame', g, new THREE.Vector3(), new THREE.Vector3(0, 0, -30));
 }
 
@@ -161,13 +157,14 @@ const story = createStoryUI({
     cam.theta = v.theta + THREE.MathUtils.euclideanModulo(cam.theta - v.theta + Math.PI, 2 * Math.PI) - Math.PI; // take the short way round
   },
 });
+createCallouts(stage, { parts, state, story: LOCK_STORY });
 
 const focusStyle = {
   highlight: 0.18,
   opacity(name, mesh, hot) {
     let alpha = 1;
     if (mesh.userData.cutaway && state.cut) alpha = hot ? 0.3 : 0.14;
-    if (state.focus.length && !hot) alpha = Math.min(alpha, 0.3);
+    if (state.focus.length && !hot && looksInside(state)) alpha = Math.min(alpha, 0.3);
     return alpha;
   },
 };
@@ -185,7 +182,7 @@ function showReadout(bolt) {
 
 // ---------- Frame ----------
 startLoop(stage, dt => {
-  update(state, focusStyle, reduced ? 1 : 0.09);
+  update(state, focusStyle, reduced ? 1 : 0.09, dt);
   if (camGoal) { // ease to the step's view once; after that the reader's own zoom wins
     const k = reduced ? 1 : Math.min(1, dt * 3);
     for (const a of ['r', 'theta', 'phi']) cam[a] += (camGoal[a] - cam[a]) * k;
