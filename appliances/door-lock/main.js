@@ -141,7 +141,7 @@ const bolt = new THREE.Group();
   const g = new THREE.Group();
   g.add(plateXY({ w: 26, h: 57, cx: 40, hole: [9, 23], thick: 1.5, z0: -61.5, mat: M.nickel }));
   g.add(plateXY({ w: 30, h: 64, cx: 40, hole: [10, 24], thick: 1.2, z0: -65.2, mat: M.nickel }));
-  const jamb = box([40, 80, 32], M.jamb, [40, 0, -81]); jamb.userData.cutaway = true; g.add(jamb);
+  const jamb = box([40, 80, 32], M.jamb, [40, 0, -81], 1.5); jamb.userData.cutaway = true; g.add(jamb);
   add('frame', g, new THREE.Vector3(), new THREE.Vector3(0, 0, -30));
 }
 

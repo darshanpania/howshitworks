@@ -3,8 +3,11 @@ import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeom
 
 const v3 = p => (p && p.isVector3 ? p : new THREE.Vector3(...(p || [0, 0, 0])));
 
-// A box mesh at pos. radius > 0 rounds the edges.
-export function box(size, mat, pos, radius = 0) {
+// A box mesh at pos. Edges are bevelled by default (18% of the thinnest side), so they catch
+// a highlight like a machined or moulded part. Large wooden or structural pieces should pass
+// a small radius of their own (about 1.5 mm); pass 0 for a sharp box.
+export const BEVEL = 0.18;
+export function box(size, mat, pos, radius = Math.min(...size.map(Math.abs)) * BEVEL) {
   const geo = radius > 0 ? new RoundedBoxGeometry(...size, 3, radius) : new THREE.BoxGeometry(...size);
   const mesh = new THREE.Mesh(geo, mat); mesh.position.copy(v3(pos)); return mesh;
 }

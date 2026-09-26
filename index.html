@@ -16,12 +16,12 @@
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
+  <meta property="og:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. The copper cube logo, opened to show gears, a copper coil and a spring.">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="How Shit Works">
   <meta name="twitter:description" content="Everyday electrical and mechanical appliances, shown from the inside in 3D.">
   <meta name="twitter:image" content="https://howshitworks.darshanpania.me/brand/og-image.jpg">
-  <meta name="twitter:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. An exploded toaster with copper heating elements.">
+  <meta name="twitter:image:alt" content="How Shit Works. Everyday appliances, taken apart in 3D. The copper cube logo, opened to show gears, a copper coil and a spring.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
   <script>try{var t=localStorage.getItem('hsw-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
@@ -95,6 +95,17 @@
     .hero-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: -4px; }
     .hero-stage:not(.ready) .hero-toggle { visibility: hidden; }
     @media (max-width: 640px) { .hero-note { font-size: 9px; letter-spacing: .08em; } }
+    /* Phones: the 3D box comes straight after the title, so the first screen shows it. */
+    @media (max-width: 999px) {
+      .hero { display: flex; flex-direction: column; align-items: stretch; gap: 0; }
+      .hero-copy { display: contents; }
+      .hero-copy .kicker { order: 1; } .hero h1 { order: 2; margin-bottom: 4px; } .hero-stage { order: 3; }
+      .lede { order: 4; margin-top: 8px; } .cta { order: 5; } .stats { order: 6; }
+    }
+    @media (max-width: 640px) {
+      .hero-stage { height: clamp(300px, 80vw, 380px); }
+      .stats { gap: 22px; margin-top: 28px; } .stats dd { font-size: 22px; }
+    }
 
     /* ---------- The collection ---------- */
     .section { display: flex; align-items: baseline; gap: 10px; font: 500 11px/1 var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 56px 0 16px; }

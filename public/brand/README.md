@@ -1,12 +1,9 @@
 # Brand assets
 
 - `logo.svg`: editable copper open-cube mark, also used as the favicon.
-- `og-image.jpg`: 1200 × 630 social preview, shared by the home and appliance pages.
+- `og-image.jpg`: 1200 × 630 social preview for the home page: the open copper cube from the landing-page hero.
+- `og/<slug>.jpg`: 1200 × 630 social preview for each appliance page.
 
-The social illustration was generated with the built-in image generation tool and exported as an optimized JPEG. The logo is a simple native SVG. Metadata is embedded in each HTML document so crawlers do not need JavaScript. New appliance pages should include the same metadata with their own title, description, and canonical URL.
+All six social cards share one layout on the blueprint-navy dark theme: the logo and site name, the appliance number and title in Syne, the one-line summary from its landing card, the domain, and a dark-theme render of the model (the 1280 px thumbnail, or the hero cube for the home page). They are HTML rendered to JPEG (quality 88) at 1200 × 630, so re-render them when a model or the theme changes. The logo is a simple native SVG. Metadata is embedded in each HTML document so crawlers do not need JavaScript. New appliance pages should include the same metadata with their own title, description, and canonical URL.
 
 Production origin: `https://howshitworks.darshanpania.me`. Deploy the HTML and public assets together. Live unfurls require deployment; services may cache previous previews.
-
-## Image generation prompt
-
-Create a finished social sharing Open Graph card for an educational 3D website named "How Shit Works". Landscape aspect ratio 1.90476:1, ideally 1200x630 pixels. Premium technical editorial design. Background solid deep navy charcoal #0F151B. Left 55% typography, right 45% a beautifully rendered exploded-view two-slot toaster with separated silver metal housing, copper orange glowing heating element panels, springs and dark base, floating in a clean vertical stack in isometric perspective. Clear visually coherent stylized 3D primitives, no fake scientific labels. Warm copper #D98B52 accents and off-white #E8ECF0 text. Big bold geometric sans-serif exact headline on three lines "How Shit" / "Works." (two lines), generous spacing and strong readability even in small link preview. Above headline small uppercase text "OPEN IT UP". Below headline exact subtitle "Everyday appliances, taken apart in 3D." in smaller but readable sans-serif, may wrap two lines. Bottom left tiny "howshitworks.darshanpania.me". Top left include a small minimal copper isometric cube logo with its top diamond lifted away from lower body like exploded layers. Keep 60px safe margins. Quiet subtle engineering grid on right only. Restrained, sophisticated, no gradients behind typography, no rounded card border, no extra text. Final complete card edge-to-edge, no surrounding mockup.

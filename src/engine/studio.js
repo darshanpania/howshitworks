@@ -9,9 +9,11 @@ import { onThemeChange } from '../site.js';
 
 // Colours that follow the theme. Hex values are sRGB; the ghost and rim tints feed a
 // shader that works in linear light, so they are converted.
+// pool is a soft patch of light on the floor under the model. On the pale paper the floor is
+// already lit; on blueprint navy a black shadow has nothing to darken without it.
 export const PALETTE = {
-  light: { grid: '#8c8474', ghost: '#2c5a8c', rim: '#e0823f', shadow: 0.62 },
-  dark: { grid: '#4fb3e6', ghost: '#7cc8f2', rim: '#f39a52', shadow: 0.95 },
+  light: { grid: '#8c8474', ghost: '#2c5a8c', rim: '#e0823f', shadow: 0.62, pool: '#ffffff', poolOpacity: 0 },
+  dark: { grid: '#4fb3e6', ghost: '#7cc8f2', rim: '#f39a52', shadow: 1, pool: '#8cc8ff', poolOpacity: 0.24 },
 };
 export const themeUniforms = {
   ghostTint: { value: new THREE.Color() },
@@ -119,6 +121,15 @@ export function gridFloor(size, { cell = 1, opacity = 0.18, center = [0, 0] } = 
   return mesh;
 }
 
+// A white disc that fades to nothing at its edge.
+function radialTexture(size = 128) {
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const g = c.getContext('2d'), h = size / 2, grad = g.createRadialGradient(h, h, 0, h, h, h);
+  grad.addColorStop(0, 'rgba(255,255,255,1)'); grad.addColorStop(0.45, 'rgba(255,255,255,.55)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = grad; g.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(c);
+}
+
 // A soft contact shadow, after three.js's webgl_shadow_contact example: an orthographic
 // camera looks up from the floor, renders the model's depth as darkness, and a two-pass
 // blur softens it. Parts close to the floor get a dark, tight shadow; high parts a faint wide one.
@@ -131,6 +142,9 @@ export function contactShadow(stage, parent, { size = 10, height = 5, blur = 3, 
   const plane = new THREE.PlaneGeometry(size, size).rotateX(Math.PI / 2);
   const shown = new THREE.MeshBasicMaterial({ map: target.texture, transparent: true, depthWrite: false, toneMapped: false });
   const mesh = new THREE.Mesh(plane, shown); mesh.scale.y = -1; mesh.renderOrder = -1; group.add(mesh);
+  const poolMat = new THREE.MeshBasicMaterial({ map: radialTexture(), transparent: true, depthWrite: false, toneMapped: false });
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(size * 0.7, size * 0.7).rotateX(-Math.PI / 2), poolMat);
+  pool.position.y = -0.001; pool.renderOrder = -1.5; pool.userData.noContactShadow = true; group.add(pool);
   const blurPlane = new THREE.Mesh(plane); blurPlane.visible = false; group.add(blurPlane);
   const camera = new THREE.OrthographicCamera(-size / 2, size / 2, size / 2, -size / 2, 0, height);
   camera.rotation.x = Math.PI / 2; group.add(camera);
@@ -146,7 +160,10 @@ export function contactShadow(stage, parent, { size = 10, height = 5, blur = 3, 
   depth.depthTest = false; depth.depthWrite = false;
   const hBlur = new THREE.ShaderMaterial(HorizontalBlurShader); hBlur.depthTest = false;
   const vBlur = new THREE.ShaderMaterial(VerticalBlurShader); vBlur.depthTest = false;
-  onPalette(p => { shown.opacity = p.shadow; });
+  onPalette(p => {
+    shown.opacity = p.shadow;
+    poolMat.color.set(p.pool); poolMat.opacity = p.poolOpacity; pool.visible = p.poolOpacity > 0;
+  });
 
   function blurPass(amount) {
     blurPlane.visible = true;

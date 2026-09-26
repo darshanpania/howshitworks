@@ -2,8 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import { createMaterials, linear, LOOKS } from '../src/kit/materials.js';
-import { helixCurve, springGeometry, roundedRect, lathe } from '../src/kit/shapes.js';
+import { helixCurve, springGeometry, roundedRect, lathe, box, BEVEL } from '../src/kit/shapes.js';
 import { heatColor } from '../src/kit/effects.js';
+import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
 
 test('materials start from a look and accept overrides', () => {
   const M = createMaterials({ a: 'steel', b: { look: 'copper', roughness: 0.9 }, c: { color: 0x123456 } });
@@ -45,6 +46,13 @@ test('rounded rectangles and lathes produce geometry', () => {
   assert.ok(roundedRect(2, 1, 0.2).getPoints().length > 8);
   const mesh = lathe([[0, 0], [1, 0], [1, 1]], new THREE.MeshStandardMaterial());
   assert.ok(mesh.geometry.attributes.position.count > 0);
+});
+
+test('boxes are bevelled unless asked to be sharp', () => {
+  const mat = new THREE.MeshStandardMaterial();
+  assert.ok(box([1, 0.5, 2], mat, [0, 0, 0]).geometry instanceof RoundedBoxGeometry);
+  assert.ok(!(box([1, 0.5, 2], mat, [0, 0, 0], 0).geometry instanceof RoundedBoxGeometry));
+  assert.ok(0.5 * BEVEL < 0.25, 'the default bevel fits inside the thinnest side');
 });
 
 test('heat colour goes from black to orange', () => {

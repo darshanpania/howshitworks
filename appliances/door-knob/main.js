@@ -67,8 +67,8 @@ const { parts, add, update } = createParts(root, { shadows: true, lively: true }
 // Jamb with its door stop, and the strike plate screwed to its face.
 {
   const g = new THREE.Group();
-  const jamb = box([4, 16, 5.2], M.jamb, [LATCH.jambGap + 2, 0, -0.6]); jamb.userData.cutaway = true; g.add(jamb);
-  const stop = box([1.2, 16, 1.2], M.jamb, [LATCH.jambGap - 0.6, 0, -2.6]); stop.userData.cutaway = true; g.add(stop);
+  const jamb = box([4, 16, 5.2], M.jamb, [LATCH.jambGap + 2, 0, -0.6], 0.15); jamb.userData.cutaway = true; g.add(jamb);
+  const stop = box([1.2, 16, 1.2], M.jamb, [LATCH.jambGap - 0.6, 0, -2.6], 0.1); stop.userData.cutaway = true; g.add(stop);
   add('jamb', g, new THREE.Vector3(), new THREE.Vector3(9, 0, 0));
   const strike = new THREE.Group();
   strike.add(holedPlate({ z: [-1.4, 1.9], h: 5, hole: [2 * LATCH.hole, 1.8], thick: 0.15, x0: LATCH.jambGap - 0.02, mat: M.brushed }));
