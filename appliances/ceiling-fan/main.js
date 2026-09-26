@@ -1,6 +1,7 @@
 import * as THREE from 'three';
-import { createStage, addFloor } from '../../src/engine/stage.js';
+import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
+import { createCallouts } from '../../src/engine/callouts.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion } from '../../src/engine/loop.js';
@@ -10,13 +11,12 @@ import { FAN_STORY } from './story.js';
 
 // ---------- Stage ----------
 const stage = createStage(document.getElementById('c'), {
-  fov: 38, camera: { theta: 0.6, phi: 1.2, r: 11, target: [0, -0.2, 0] }, zoom: [5, 16],
+  fov: 38, pbr: true, camera: { theta: 0.6, phi: 1.2, r: 11, target: [0, -0.2, 0] }, zoom: [5, 16],
 });
 const { scene } = stage;
-scene.add(new THREE.HemisphereLight(0xffffff, 0x334455, 0.9));
-const key = new THREE.DirectionalLight(0xffffff, 0.9); key.position.set(4,6,3); scene.add(key);
-const rim = new THREE.DirectionalLight(0xffe0c0, 0.4); rim.position.set(-5,2,-4); scene.add(rim);
-addFloor(stage, -3.2);
+addStudioLights(stage, { key: [4, 9, 5], extent: 7, far: 30 });
+// The fan hangs high above the floor, so its contact shadow is a wide, faint pool.
+addFloor(stage, -3.2, { height: 7.5, blur: 5, darkness: 1.1, shadowSize: 12 });
 
 // ---------- Materials ----------
 const M = createMaterials({
@@ -31,12 +31,12 @@ const M = createMaterials({
   cover: { color: 0x8E97A2, metalness: 0.6, roughness: 0.4, side: THREE.DoubleSide },
   bearing: { color: 0xD4A64A, metalness: 0.9, roughness: 0.25 },
   wire: 'wire',
-});
+}, { pbr: true });
 
 // ---------- Parts ----------
 const root = new THREE.Group(); scene.add(root);
 const spinner = new THREE.Group(); root.add(spinner); // everything that rotates
-const { add, update } = createParts(root, { lively: true });
+const { parts, add, update } = createParts(root, { shadows: true, lively: true });
 
 // Canopy + downrod (fixed)
 {
@@ -116,6 +116,8 @@ const { add, update } = createParts(root, { lively: true });
     blade.rotation.x = THREE.MathUtils.degToRad(11); // pitch
     pivot.rotation.y = a; pivot.position.y = -0.05; g.add(pivot);
   }
+  g.userData.anchor = [2.3, -0.05, 1.1]; g.userData.anchorStatic = true; // a point on the blade disc, not the hub
+
   add('blades', g, new THREE.Vector3(0,0,0), new THREE.Vector3(0,-3.4,0), spinner);
 }
 
@@ -143,6 +145,7 @@ const story = createStoryUI({
   onStep: s => { state.airOn = !!s.air; state.cut = s.cut; state.focus = s.focus; },
 });
 bindRange('speed', v => { state.speed = v; });
+createCallouts(stage, { parts, state, story: FAN_STORY });
 
 // Unfocused parts fade; in cutaway steps the rotor casing and top cover go glassy.
 const focusStyle = {
@@ -165,7 +168,7 @@ const wind = sound.loop({ type: 'noise', filter: 'lowpass', freq: 300, q: 0.7 })
 // ---------- Frame ----------
 let spin = 0;
 startLoop(stage, dt => {
-  update(state, focusStyle, reducedMotion ? 1 : 0.08);
+  update(state, focusStyle, reducedMotion ? 1 : 0.08, dt);
   // spin: the casing spins up and coasts down instead of jumping
   const targetSpin = state.playing ? state.speed * 2.2 : 0;
   spin += (targetSpin - spin) * Math.min(1, dt * (reducedMotion ? 60 : 1.5));

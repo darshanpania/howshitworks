@@ -55,6 +55,7 @@ export function createStoryUI({ story, state, onStep, doc = document, slug = app
     setExplode(s.explode);
     list.querySelectorAll('.step').forEach((el, j) => {
       el.classList.toggle('active', j === state.step);
+      el.classList.toggle('done', j < state.step);
       if (j === state.step) el.setAttribute('aria-current', 'step'); else el.removeAttribute('aria-current');
     });
     if (scroll) $(`step-${state.step}`).scrollIntoView({ block: 'nearest', behavior: reducedMotion ? 'auto' : 'smooth' });
@@ -64,7 +65,7 @@ export function createStoryUI({ story, state, onStep, doc = document, slug = app
     if (refocus) next.focus();
     const atEnd = state.step === last;
     next.textContent = atEnd ? `${onward.label} →` : 'Next';
-    next.classList.toggle('primary', atEnd);
+    next.classList.add('primary');
     if (bar) {
       bar.style.setProperty('--progress', `${((state.step + 1) / story.length) * 100}%`);
       bar.setAttribute('aria-valuenow', String(state.step + 1));

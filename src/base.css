@@ -15,8 +15,12 @@
   size-adjust: 100%; ascent-override: 102.5%; descent-override: 27.5%; line-gap-override: 0%; }
 
 :root {
-  --bg: #EEF1F4; --panel: #FFFFFF; --ink: #1A222B; --muted: #5E6B78; --line: #D5DBE2;
+  /* Light: warm drafting paper. Dark: blueprint navy. Copper is the one signal colour. */
+  --bg: #F3F0EA; --panel: #FCFBF8; --ink: #1B1A17; --muted: #68645C; --line: #DFD9CE;
   --copper: #C4703A; --brass: #D4A64A; --accent: #C4703A; --accent-ink: #FFFFFF;
+  --stage-hi: #FFFEFB; --stage-lo: #E4DDD0; --blueprint: #2C5A8C;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.28'/></svg>");
+  --shadow-soft: 0 1px 2px rgb(40 30 10 / .06), 0 8px 24px -8px rgb(40 30 10 / .14);
   --track: color-mix(in srgb, var(--ink) 16%, transparent);
   --font-display: "Syne", "Syne Fallback", sans-serif;
   --font-body: "IBM Plex Sans", "IBM Plex Sans Fallback", system-ui, sans-serif;
@@ -26,18 +30,30 @@
 /* Dark tokens: follow the system unless the reader picked a theme (data-theme on <html>, set by /src/site.js). */
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0F151B; --panel: #161E26; --ink: #E8ECF0; --muted: #8C98A4; --line: #26313C;
-    --copper: #D98B52; --brass: #E0B65C; --accent: #D98B52; --accent-ink: #0F151B;
+    --bg: #0B1622; --panel: #0F1D2C; --ink: #E6EDF5; --muted: #8C9DB2; --line: #1F3348;
+    --copper: #E0915A; --brass: #E0B65C; --accent: #E0915A; --accent-ink: #0B1622;
+    --stage-hi: #173250; --stage-lo: #07101A; --blueprint: #7CC8F2;
+    --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.12'/></svg>");
+    --shadow-soft: 0 1px 2px rgb(0 0 0 / .3), 0 10px 30px -10px rgb(0 0 0 / .6);
   }
 }
 :root[data-theme="dark"] {
-  --bg: #0F151B; --panel: #161E26; --ink: #E8ECF0; --muted: #8C98A4; --line: #26313C;
-  --copper: #D98B52; --brass: #E0B65C; --accent: #D98B52; --accent-ink: #0F151B;
+  --bg: #0B1622; --panel: #0F1D2C; --ink: #E6EDF5; --muted: #8C9DB2; --line: #1F3348;
+  --copper: #E0915A; --brass: #E0B65C; --accent: #E0915A; --accent-ink: #0B1622;
+  --stage-hi: #173250; --stage-lo: #07101A; --blueprint: #7CC8F2;
+  --grain: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.12'/></svg>");
+  --shadow-soft: 0 1px 2px rgb(0 0 0 / .3), 0 10px 30px -10px rgb(0 0 0 / .6);
   color-scheme: dark;
 }
 :root[data-theme="light"] { color-scheme: light; }
 * { box-sizing: border-box; }
 html, body { height: 100%; }
+::selection { background: color-mix(in srgb, var(--accent) 28%, transparent); }
+
+/* Page to page: the card title on the landing page grows into the appliance page's title. */
+@view-transition { navigation: auto; }
+::view-transition-group(*) { animation-duration: .45s; animation-timing-function: cubic-bezier(.2, .7, .1, 1); }
+@media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
 body {
   margin: 0; background: var(--bg); color: var(--ink);
   font-family: var(--font-body); font-size: 15px; line-height: 1.5;
@@ -80,8 +96,45 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 
 /* ---------- Appliance page: 3D stage + story panel ---------- */
 .app { display: grid; grid-template-columns: 1fr 360px; height: 100%; min-height: 560px; }
-.stage { position: relative; overflow: hidden; background: var(--bg); }
+.stage {
+  position: relative; overflow: hidden;
+  /* A photo-studio sweep: bright where the model stands, darker at the edges, with fine grain.
+     The canvas is transparent, so the backdrop shows around the model and never over it. */
+  background: var(--grain), radial-gradient(115% 85% at 50% 42%, var(--stage-hi) 0%, var(--bg) 52%, var(--stage-lo) 100%);
+}
 .stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.stage > .brand, .stage > .hud { z-index: 2; }
+
+/* Callouts pinned to the parts in focus (src/engine/callouts.js). */
+.callouts { position: absolute; inset: 0; z-index: 1; pointer-events: none; opacity: 0; transition: opacity .3s ease; }
+.callouts.on { opacity: 1; }
+.callout-lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.callout-lines .leader { fill: none; stroke: color-mix(in srgb, var(--ink) 62%, transparent); stroke-width: 1.2; stroke-dasharray: 1; stroke-linejoin: round; }
+.callouts.draw .leader { animation: callout-draw .7s cubic-bezier(.3, .6, .2, 1) both; }
+.callout-dot { fill: var(--accent); stroke: var(--panel); stroke-width: 1.5; }
+.callout-halo { fill: none; stroke: var(--accent); stroke-width: 1.5; transform-box: fill-box; transform-origin: center; animation: callout-halo 2s ease-out infinite; }
+.callout-label {
+  position: absolute; left: 0; top: 0; display: flex; align-items: center; gap: 9px; padding: 4px 13px 4px 4px;
+  border-radius: 999px; border: 1px solid var(--line); background: color-mix(in srgb, var(--panel) 86%, transparent);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); box-shadow: var(--shadow-soft);
+  font: 500 11px/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; color: var(--ink);
+  will-change: transform;
+}
+.callouts.draw .callout-label { animation: callout-in .5s .25s cubic-bezier(.2, .8, .2, 1) both; }
+.callout-n {
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
+  background: var(--accent); color: var(--accent-ink); font-size: 10px; letter-spacing: 0; font-variant-numeric: tabular-nums;
+}
+@keyframes callout-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+@keyframes callout-halo { from { transform: scale(1); opacity: .7; } to { transform: scale(3.2); opacity: 0; } }
+@keyframes callout-in { from { opacity: 0; clip-path: inset(0 100% 0 0 round 999px); } to { opacity: 1; clip-path: inset(0 0 0 0 round 999px); } }
+@media (max-width: 800px) {
+  .callout-label { font-size: 9.5px; gap: 6px; padding: 3px 10px 3px 3px; }
+  .callout-n { width: 18px; height: 18px; font-size: 9px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .callouts.draw .leader, .callouts.draw .callout-label, .callout-halo { animation: none; }
+}
 
 /* Title block, top left. It spans the stage so the readout can sit top right inside it. */
 .brand {
@@ -92,14 +145,17 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 .crumbs { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
 .home-link {
   position: relative; display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px 0 10px;
-  border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--panel) 88%, transparent);
-  font: 500 13px/1 var(--font-body); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 999px; background: color-mix(in srgb, var(--panel) 80%, transparent);
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
+  font: 500 13px/1 var(--font-body); color: var(--ink); transition: border-color .15s, transform .15s;
 }
+.home-link:hover svg { transform: translateX(-2px); }
+.home-link svg { transition: transform .15s; }
 .home-link::before { content: ""; position: absolute; inset: -4px -2px; } /* 44px hit area */
 .home-link:hover { border-color: var(--accent); }
 .home-link svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .brand h1 {
-  font: 800 clamp(28px, 3.2vw, 44px)/1.02 var(--font-display); letter-spacing: -.01em;
+  font: 800 clamp(30px, 3.8vw, 54px)/1 var(--font-display); letter-spacing: -.015em;
   margin: 12px 0 0; max-width: 60%; text-wrap: balance;
 }
 /* Keep the title and crumbs clear of the readout box in the top right. */
@@ -110,8 +166,9 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 
 /* Live numbers from the simulation. Pages add their own highlight colours in page.css. */
 .readout {
-  position: absolute; top: 0; right: 0; margin: 0; display: grid; gap: 6px; padding: 10px 12px; min-width: 150px;
-  background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 8px;
+  position: absolute; top: 0; right: 0; margin: 0; display: grid; gap: 6px; padding: 12px 14px; min-width: 170px;
+  background: color-mix(in srgb, var(--panel) 80%, transparent); border: 1px solid var(--line); border-radius: 12px;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--shadow-soft);
 }
 .readout div { display: flex; justify-content: space-between; gap: 12px; }
 .readout dt { font: 500 11px/1.4 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
@@ -123,7 +180,7 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
   display: flex; gap: 10px; align-items: center; flex-wrap: wrap;
 }
 .hud label, .step .n, .part { font: 500 11px/1 var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
-.play { width: 44px; padding: 0; border-radius: 50%; }
+.play { width: 44px; padding: 0; border-radius: 50%; box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--accent) 70%, transparent); }
 .play svg { width: 20px; height: 20px; fill: currentColor; }
 .play[aria-pressed=true] .i-play, .play[aria-pressed=false] .i-pause { display: none; }
 .controls-toggle { display: none; border-radius: 999px; }
@@ -131,7 +188,8 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 .hud-controls { display: flex; gap: 10px; flex-wrap: wrap; }
 .control {
   display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px;
-  background: color-mix(in srgb, var(--panel) 85%, transparent); border: 1px solid var(--line); border-radius: 999px;
+  background: color-mix(in srgb, var(--panel) 78%, transparent); border: 1px solid var(--line); border-radius: 999px;
+  -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
 }
 .control output { font: 500 12px/1 var(--font-mono); font-variant-numeric: tabular-nums; min-width: 4ch; color: var(--ink); }
 
@@ -148,17 +206,36 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 @media (hover: hover) and (pointer: fine) and (min-width: 801px) { .keys { display: block; } }
 .steps { overflow: auto; padding: 8px 0; flex: 1; min-height: 0; overscroll-behavior: contain; }
 .step {
-  display: grid; grid-template-columns: 34px 1fr; gap: 10px; width: 100%; min-height: 44px; text-align: left; padding: 12px 20px;
-  border: 0; border-left: 3px solid transparent; background: transparent; color: var(--ink); cursor: pointer; font-family: inherit;
+  --rail: var(--line);
+  position: relative; display: grid; grid-template-columns: 26px 1fr; gap: 14px; width: 100%; min-height: 44px; text-align: left; padding: 12px 20px;
+  border: 0; background: transparent; color: var(--ink); cursor: pointer; font-family: inherit;
+  transition: background-color .2s;
 }
-.step:hover { background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.step.active { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); }
-.step .n { font-size: 12px; line-height: 1.5; letter-spacing: 0; padding-top: 1px; }
+/* A timeline rail joins the step numbers; the part already read turns copper. */
+.step::before { content: ""; position: absolute; left: 32.5px; top: 0; bottom: 0; width: 1px; background: var(--rail); }
+.step:first-child::before { top: 24px; }
+.step:last-child::before { bottom: calc(100% - 24px); }
+.step.done { --rail: var(--accent); }
+.step:hover { background: color-mix(in srgb, var(--accent) 6%, transparent); }
+.step.active { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+.step .n {
+  position: relative; display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%;
+  border: 1px solid var(--line); background: var(--panel); font-size: 10.5px; line-height: 1; letter-spacing: 0;
+  font-variant-numeric: tabular-nums; transition: background-color .25s, border-color .25s, color .25s;
+}
+.step.done .n { border-color: var(--accent); color: var(--copper); }
+.step.active .n { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 18%, transparent); }
+.step .t { padding-top: 3px; }
 .step .t { display: block; font: 600 15.5px/1.3 var(--font-display); }
-.step .d { display: none; color: var(--ink); font-size: 14.5px; line-height: 1.55; margin-top: 8px; }
+.step .d { display: none; color: var(--ink); font-size: 14.5px; line-height: 1.6; margin-top: 8px; }
+.step.active .d { animation: step-open .35s ease both; }
+@keyframes step-open { from { opacity: 0; transform: translateY(-4px); } }
 .part { color: var(--copper); margin-top: 10px; display: none; line-height: 1.4; }
 .step.active .d, .step.active .part { display: block; }
 .panel-foot { padding: 12px 20px max(12px, env(safe-area-inset-bottom)); border-top: 1px solid var(--line); display: flex; gap: 8px; }
+.btn.primary:hover:not(:disabled) { filter: brightness(1.06); }
+.btn { transition: border-color .15s, background-color .15s, filter .15s, transform .1s; }
+.btn:active:not(:disabled) { transform: scale(.97); }
 .panel-foot .btn { flex: 1; }
 .panel-foot .btn.primary { flex: 2; }
 
@@ -184,6 +261,9 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
   .progress { margin-top: 10px; }
   .hint { font-size: 12.5px; margin-top: 6px; }
   .step { padding: 10px 16px; }
+  .step::before { left: 28.5px; }
+  .step:first-child::before { top: 23px; }
+  .step:last-child::before { bottom: calc(100% - 23px); }
   .panel-foot { padding: 10px 16px max(10px, env(safe-area-inset-bottom)); }
 }
 /* Narrow stages (tablets and phones): one row of play + Controls; the sliders open in a small sheet above it. */
@@ -204,15 +284,14 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 @media (max-width: 400px) { .site-name { display: none; } }
 @media (prefers-reduced-motion: reduce) {
   .progress::before { transition: none; }
+  .step.active .d { animation: none; }
   input[type=range]:active::-webkit-slider-thumb { transform: none; }
 }
 
-/* Shared brand mark; dimensions prevent layout shift before the SVG loads. */
-.site-logo { display: block; margin-bottom: 20px; }
 
 /* ---------- Site tools: sound, share, theme ---------- */
 .site-tools { display: flex; gap: 8px; align-items: center; }
-.btn.tool { width: 44px; padding: 0; border-radius: 50%; background: color-mix(in srgb, var(--panel) 88%, transparent); }
+.btn.tool { width: 44px; padding: 0; border-radius: 50%; background: color-mix(in srgb, var(--panel) 80%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); }
 .btn.tool svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
 .btn.tool[aria-pressed=true] { color: var(--accent); border-color: var(--accent); }
 .share { position: relative; }

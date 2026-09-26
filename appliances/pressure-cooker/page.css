@@ -1,2 +1,5 @@
 /* Page-specific styles for the pressure cooker. Shared layout and the .readout live in /src/base.css. */
 .readout.hot dd#r-pressure { color: var(--copper); }
+
+/* The landing card title grows into this title (cross-document view transition). */
+.brand h1 { view-transition-name: t-pressure-cooker; width: fit-content; }
