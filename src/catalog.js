@@ -5,6 +5,7 @@ export const CATALOG = [
   { slug: 'pressure-cooker', no: 3, title: 'Pressure Cooker' },
   { slug: 'door-knob', no: 4, title: 'Door Knob' },
   { slug: 'door-lock', no: 5, title: 'Door Lock' },
+  { slug: 'washing-machine-front-load', no: 10, title: 'Washing Machine · Front Load' },
 ];
 
 export const applianceUrl = slug => `/appliances/${slug}`;
