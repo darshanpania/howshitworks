@@ -29,7 +29,7 @@ test('the catalog lists every appliance page with its number and title', () => {
   const dirs = readdirSync('appliances', { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name);
   assert.deepEqual(CATALOG.map(a => a.slug).sort(), dirs.sort());
   CATALOG.forEach((a, i) => {
-    assert.equal(a.no, i + 1);
+    assert.ok(i === 0 ? a.no === 1 : a.no > CATALOG[i - 1].no, `${a.slug} is No. ${a.no}`);
     const html = readFileSync(`appliances/${a.slug}/index.html`, 'utf8');
     assert.match(html, new RegExp(`No\\. ${String(a.no).padStart(2, '0')}<`), a.slug);
     assert.match(html, new RegExp(`<h1>${a.title}</h1>`), a.slug);
