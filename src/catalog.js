@@ -1,10 +1,12 @@
 // The published appliances, in reading order. "No. 0N" on each page comes from here.
+// An appliance keeps its coming-soon number when it goes live, so the numbers can skip.
 export const CATALOG = [
   { slug: 'ceiling-fan', no: 1, title: 'Ceiling Fan' },
   { slug: 'toaster', no: 2, title: 'Toaster' },
   { slug: 'pressure-cooker', no: 3, title: 'Pressure Cooker' },
   { slug: 'door-knob', no: 4, title: 'Door Knob' },
   { slug: 'door-lock', no: 5, title: 'Door Lock' },
+  { slug: 'landline-phone', no: 16, title: 'Landline Phone' },
 ];
 
 export const applianceUrl = slug => `/appliances/${slug}`;
