@@ -1,0 +1,5 @@
+/* Page-specific styles for the microwave. Shared layout and the .readout live in /src/base.css. */
+.readout.on dd#r-magnetron { color: var(--copper); }
+
+/* The landing card title grows into this title (cross-document view transition). */
+.brand h1 { view-transition-name: t-microwave; width: fit-content; }
