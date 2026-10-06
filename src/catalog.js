@@ -5,6 +5,15 @@ export const CATALOG = [
   { slug: 'pressure-cooker', no: 3, title: 'Pressure Cooker' },
   { slug: 'door-knob', no: 4, title: 'Door Knob' },
   { slug: 'door-lock', no: 5, title: 'Door Lock' },
+  { slug: 'espresso-machine', no: 6, title: 'Espresso Machine' },
+  { slug: 'mixer-grinder', no: 7, title: 'Mixer Grinder' },
+  { slug: 'dishwasher', no: 8, title: 'Dishwasher' },
+  { slug: 'washing-machine-top-load', no: 9, title: 'Washing Machine · Top Load' },
+  { slug: 'washing-machine-front-load', no: 10, title: 'Washing Machine · Front Load' },
+  { slug: 'window-ac', no: 11, title: 'Window AC' },
+  { slug: 'hvac', no: 12, title: 'HVAC' },
+  { slug: 'electric-chimney', no: 13, title: 'Electric Chimney' },
+  { slug: 'microwave', no: 14, title: 'Microwave' },
   { slug: 'air-fryer', no: 15, title: 'Air Fryer' },
 ];
 

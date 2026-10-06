@@ -1,0 +1,8 @@
+/* Page-specific styles for the top-load washing machine. Shared layout and the .readout live in /src/base.css. */
+.readout.spin dd#r-drive { color: var(--copper); }
+
+/* A long name: a little smaller than the shared title, so two lines stay clear of the model. */
+.brand h1 { font-size: clamp(28px, 3.1vw, 44px); }
+
+/* The landing card title grows into this title (cross-document view transition). */
+.brand h1 { view-transition-name: t-washing-machine-top-load; width: fit-content; }
