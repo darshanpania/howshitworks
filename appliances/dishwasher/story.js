@@ -1,0 +1,28 @@
+// Each step sets the machine mode (fill, pump, heat, drain, dry), how much water is in it
+// and the water temperature it starts from.
+export const DISHWASHER_STORY = [
+  { t: 'Cold water fills the sump', part: 'Inlet valve · Sump', explode: 0, focus: ['valve', 'water', 'sump'], cut: true,
+    mode: { fill: true }, litres: 0, startT: 20,
+    d: 'A solenoid valve opens and tap water runs in. A flow meter counts about 3.5 litres, then the valve shuts. That only fills the sump at the bottom of the tub and a thin layer on the floor: the dishes never sit in water.' },
+  { t: 'The wash pump pushes it up', part: 'Wash pump · Pipes', explode: 0.2, focus: ['pump', 'pipes'], cut: true,
+    mode: { pump: true }, litres: 3.5, startT: 20,
+    d: 'A small motor spins an impeller at about 2,800 rpm. It pulls water from the sump and pushes it up two ways: straight into the lower spray arm, and up a pipe on the back wall to the upper arm. The same 3.5 litres goes round and round.' },
+  { t: 'Water jets spin the spray arms', part: 'Spray arms ×2', explode: 0, focus: ['lowerArm', 'upperArm'], cut: true,
+    mode: { pump: true }, litres: 3.5, startT: 20,
+    d: 'No motor turns the arms. The nozzles do not point straight up: they lean 10° to one side. Each jet pushes its arm the other way, like a garden sprinkler, so the lower arm turns about 30 times a minute. Move the Jet angle slider: at 0° the arms stand still.' },
+  { t: 'The detergent drops in', part: 'Detergent dispenser', explode: 0, focus: ['dispenser'], cut: true,
+    mode: { pump: true, dispense: true }, litres: 3.5, startT: 20,
+    d: 'The tablet waits in a cup on the inside of the door. At the start of the main wash, the controller pulls a small latch and a spring flips the lid open. The tablet falls into the spray and dissolves. Its enzymes break down starch and protein, and they work best in warm water.' },
+  { t: 'A heater takes it to 65°C', part: 'Heater · Temperature sensor', explode: 0.15, focus: ['heater', 'sensor'], cut: true,
+    mode: { pump: true, heat: true }, litres: 3.5, startT: 20,
+    d: 'A 2,000 W element under the lower arm heats the water as it goes round. A thermistor reads the temperature, and the controller turns the heater off at 65°C and on again at 63°C. 3.5 litres take about 5.5 minutes to heat, longer with a load of cold dishes. Many new machines hide the heater inside the pump.' },
+  { t: 'A filter catches the food', part: 'Filter', explode: 0, focus: ['filter'], cut: true,
+    mode: { pump: true, heat: true, washFood: true }, litres: 3.5, startT: 62,
+    d: 'Water runs off the dishes and back down to the sump through a fine steel mesh. Scraps stay on the mesh, and bigger bits drop into the cup in the middle. The filter twists out for cleaning: a blocked filter is a common reason for dishes that come out dirty.' },
+  { t: 'A drain pump empties the tub', part: 'Drain pump · Drain hose', explode: 0, focus: ['drainPump', 'hose'], cut: true,
+    mode: { drain: true }, litres: 3.5, startT: 65,
+    d: 'A second, smaller pump pushes the dirty water out through the drain hose. The hose loops up high behind the machine, above the water level, so water from the sink drain cannot flow back in. Then clean water comes in and the wash pump runs again to rinse.' },
+  { t: 'A hot rinse, then the dishes dry', part: 'Rinse aid · Dishes', explode: 0, focus: ['rinseAid', 'lowerRack', 'upperRack'], cut: true,
+    mode: { dry: true }, litres: 0, startT: 65,
+    d: 'The last rinse is hot, about 65°C, with a few drops of rinse aid. Rinse aid makes water run off in a thin sheet instead of drops that dry into spots. Then the machine waits. Steam rises off the hot dishes, condenses on the cooler steel walls and runs down to the drain.' },
+];
