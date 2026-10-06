@@ -11,6 +11,7 @@ export const CATALOG = [
   { slug: 'washing-machine-top-load', no: 9, title: 'Washing Machine · Top Load' },
   { slug: 'washing-machine-front-load', no: 10, title: 'Washing Machine · Front Load' },
   { slug: 'window-ac', no: 11, title: 'Window AC' },
+  { slug: 'hvac', no: 12, title: 'HVAC' },
 ];
 
 export const applianceUrl = slug => `/appliances/${slug}`;
