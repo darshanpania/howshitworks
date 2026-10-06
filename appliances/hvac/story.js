@@ -1,0 +1,25 @@
+// Each step sets the system mode ('heat' gas furnace, 'hp' heat pump, 'cool'), the thermostat
+// set point, the room temperature it starts from, and the camera view.
+export const HVAC_STORY = [
+  { t: 'The thermostat calls for heat', part: 'Thermostat · 24 V wires', explode: 0, focus: ['thermostat'], cut: false,
+    mode: 'heat', setpoint: 21, startT: 20.8, view: 'thermostat',
+    d: 'The thermostat on the hall wall measures the air around it. When the room falls half a degree below the set point, it closes a switch on a 24 V control circuit. The red-to-white wire pair tells the furnace to heat. Move the set point and watch it decide.' },
+  { t: 'Return ducts pull the air back', part: 'Return grille · Filter', explode: 0.4, focus: ['returnDuct', 'filter'], cut: true,
+    mode: 'heat', setpoint: 21, startT: 19.2, view: 'closet',
+    d: 'A large grille in the hall pulls air back from every room. The air goes through a 25 mm pleated filter, which stops dust before it reaches the blower and the coil. A clogged filter chokes the airflow, so change it every one to three months.' },
+  { t: 'The blower moves the air', part: 'Blower · Squirrel cage', explode: 0, focus: ['blower'], cut: 'deep',
+    mode: 'heat', setpoint: 21, startT: 19.2, view: 'furnace',
+    d: 'The blower is a squirrel-cage fan: a drum of curved blades on a ½ hp motor that turns at about 1,000 rpm. Air goes in at the middle and the blades throw it out at the rim. A 3-ton system moves about 2,000 m³ of air an hour, the rule of 400 cubic feet a minute for each ton.' },
+  { t: 'Burners heat the air without touching it', part: 'Burners · Heat exchanger', explode: 0, focus: ['burners', 'exchanger'], cut: 'deep',
+    mode: 'heat', setpoint: 21, startT: 19.5, restart: true, view: 'burners',
+    d: 'First the inducer fan clears the old exhaust. Then the igniter glows and the gas valve opens. The flames fire into a sealed steel heat exchanger, and house air flows over the outside of it. The air never touches the flame or the exhaust, and it comes out about 30°C warmer. The blower waits until the exchanger is hot, so it never blows cold air.' },
+  { t: 'Supply ducts feed every room', part: 'Plenum · Trunk · Registers', explode: 0, focus: ['supply'], cut: true, ducts: true,
+    mode: 'heat', setpoint: 21, startT: 19.6, view: 'house',
+    d: 'Warm air rises into the plenum on top of the furnace and into a trunk duct in the attic. Round branch ducts carry it to a register in the ceiling of each room. It mixes with the room air and flows back to the return grille. At 21.5°C the thermostat opens the circuit, and the blower runs on for a minute to empty the heat exchanger.' },
+  { t: 'A heat pump moves heat in from outside', part: 'Outdoor unit · Refrigerant lines', explode: 0, focus: ['outdoor', 'lines', 'coil'], cut: true, flow: true,
+    mode: 'hp', setpoint: 21, startT: 19.6, view: 'outdoor',
+    d: 'A heat pump burns nothing. Refrigerant in the outdoor coil boils at about −5°C, so it picks up heat even from 7°C air. The compressor squeezes that gas until it is hotter than 60°C and pumps it to the coil above the furnace, which warms the house air. Each 1 kWh of electricity moves about 3 kWh of heat.' },
+  { t: 'In summer the loop runs backwards', part: 'Indoor coil · Reversing valve', explode: 0, focus: ['coil', 'outdoor'], cut: 'deep', flow: true,
+    mode: 'cool', setpoint: 24, startT: 25.2, view: 'coil',
+    d: 'A reversing valve in the outdoor unit swaps the flow. Now the indoor coil is the cold side, at about 5°C. It takes heat out of the air, and water vapour condenses on its fins and drips into the drain pan. The outdoor unit dumps the heat outside. Air leaves the registers at about 13°C.' },
+];
