@@ -14,6 +14,7 @@ export const CATALOG = [
   { slug: 'hvac', no: 12, title: 'HVAC' },
   { slug: 'electric-chimney', no: 13, title: 'Electric Chimney' },
   { slug: 'microwave', no: 14, title: 'Microwave' },
+  { slug: 'air-fryer', no: 15, title: 'Air Fryer' },
 ];
 
 export const applianceUrl = slug => `/appliances/${slug}`;
