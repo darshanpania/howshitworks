@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { CATALOG } from '../src/catalog.js';
 
 test('landing page lists the upcoming appliances as coming soon', () => {
   const landing = readFileSync('index.html', 'utf8');
@@ -12,4 +13,13 @@ test('landing page lists the upcoming appliances as coming soon', () => {
     assert.match(soon, new RegExp(`<h2>${name}</h2>`), `${name} is missing`);
   }
   assert.doesNotMatch(soon, /<a class="card soon"/, 'coming-soon cards must not be links');
+});
+
+test('every live appliance has a card in the collection grid, in number order', () => {
+  const landing = readFileSync('index.html', 'utf8');
+  const grid = landing.slice(landing.indexOf('id="list"'), landing.indexOf('id="soon"'));
+  const cards = [...grid.matchAll(/<a class="card[^"]*" href="\/appliances\/([^"]+)"/g)].map(m => m[1]);
+  assert.deepEqual(cards, CATALOG.map(a => a.slug));
+  assert.equal([...landing.matchAll(/<a class="card[^"]*" href=/g)].length, CATALOG.length, 'a card sits outside the grid');
+  assert.equal((grid.match(/<a class="card/g) || []).length, (grid.match(/<\/a>/g) || []).length, 'every card is closed');
 });
