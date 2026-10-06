@@ -1,12 +1,12 @@
 // The published appliances, in reading order. "No. 0N" on each page comes from here.
-// Numbers are fixed when an appliance is announced as coming soon, so a page can go live
-// before the ones numbered ahead of it.
 export const CATALOG = [
   { slug: 'ceiling-fan', no: 1, title: 'Ceiling Fan' },
   { slug: 'toaster', no: 2, title: 'Toaster' },
   { slug: 'pressure-cooker', no: 3, title: 'Pressure Cooker' },
   { slug: 'door-knob', no: 4, title: 'Door Knob' },
   { slug: 'door-lock', no: 5, title: 'Door Lock' },
+  { slug: 'espresso-machine', no: 6, title: 'Espresso Machine' },
+  { slug: 'mixer-grinder', no: 7, title: 'Mixer Grinder' },
   { slug: 'dishwasher', no: 8, title: 'Dishwasher' },
 ];
 
