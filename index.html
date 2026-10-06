@@ -172,6 +172,7 @@
     a[href="/appliances/electric-chimney"] h2 { view-transition-name: t-electric-chimney; }
     a[href="/appliances/microwave"] h2 { view-transition-name: t-microwave; }
     a[href="/appliances/air-fryer"] h2 { view-transition-name: t-air-fryer; }
+    a[href="/appliances/landline-phone"] h2 { view-transition-name: t-landline-phone; }
 
     /* Coming soon: a compact numbered list, secondary to the live cards. */
     .soon { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; column-gap: 32px; }
@@ -182,6 +183,7 @@
     .soon h2 { font: 600 15px/20px var(--font-display); margin: 0; color: var(--ink); }
     .soon p { margin: 2px 0 0; color: var(--muted); font-size: 13px; line-height: 1.45; }
     @media (max-width: 639px) { .soon p { display: none; } }
+    .section[hidden], .soon[hidden] { display: none; }
     footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
   </style>
 </head>
@@ -200,12 +202,12 @@
         <p class="lede">Everyday appliances, taken apart in 3D. Each one is a short story: where the power comes in, what moves, and why it does the job.</p>
         <div class="cta">
           <a class="btn primary" href="/appliances/ceiling-fan">Start with the ceiling fan <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9 4l4 4-4 4"/></svg></a>
-          <a class="btn" href="#list">See all fifteen</a>
+          <a class="btn" href="#list">See all sixteen</a>
         </div>
         <dl class="stats">
-          <div><dt>Appliances</dt><dd>15</dd></div>
-          <div><dt>Steps</dt><dd>114</dd></div>
-          <div><dt>On the bench</dt><dd>01</dd></div>
+          <div><dt>Appliances</dt><dd>16</dd></div>
+          <div><dt>Steps</dt><dd>122</dd></div>
+          <div><dt>On the bench</dt><dd>00</dd></div>
         </dl>
       </div>
       <div class="hero-stage" id="hero">
@@ -216,7 +218,7 @@
       </div>
     </section>
 
-    <h2 class="section" id="collection">The collection <span class="count">15</span></h2>
+    <h2 class="section" id="collection">The collection <span class="count">16</span></h2>
     <div class="grid" id="list">
       <a class="card featured" href="/appliances/ceiling-fan">
         <span class="thumb">
@@ -398,11 +400,23 @@
           <div class="meta"><span class="spec">8 steps · 200 °C air</span><span class="go" aria-hidden="true">Open <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
         </div>
       </a>
+      <a class="card" href="/appliances/landline-phone">
+        <span class="thumb">
+          <img class="light" src="/thumbs/landline-phone-800.webp" srcset="/thumbs/landline-phone-800.webp 800w, /thumbs/landline-phone-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+          <img class="dark" src="/thumbs/landline-phone-dark-800.webp" srcset="/thumbs/landline-phone-dark-800.webp 800w, /thumbs/landline-phone-dark-1280.webp 1280w" sizes="(min-width: 1000px) 360px, (min-width: 640px) calc(50vw - 40px), calc(100vw - 32px)" width="800" height="500" alt="" loading="lazy" decoding="async">
+        </span>
+        <div class="body">
+          <div class="num">No. 16</div>
+          <h2>Landline Phone</h2>
+          <p>A carbon microphone turns your voice into a varying current on a copper pair.</p>
+          <div class="meta"><span class="spec">8 steps · 48 V line</span><span class="go" aria-hidden="true">Open <svg viewBox="0 0 16 16"><path d="M3 8h10M9 4l4 4-4 4"/></svg></span></div>
+        </div>
+      </a>
     </div>
 
-    <h2 class="section">Coming soon <span class="count">01</span></h2>
-    <ol class="soon" id="soon">
-      <li><span class="num">16</span><div><h2>Landline Phone</h2><p>A carbon microphone turns your voice into a varying current on a copper pair.</p></div></li>
+    <!-- Every announced appliance is live. Remove "hidden" when the next ones are announced. -->
+    <h2 class="section" hidden>Coming soon <span class="count">00</span></h2>
+    <ol class="soon" id="soon" hidden>
     </ol>
 
     <footer>Built with three.js and <span role="img" aria-label="love">❤️</span> by <a href="https://darshanpania.me">Darshan Pania</a>.</footer>
