@@ -29,8 +29,8 @@ test('the catalog lists every appliance page with its number and title', () => {
   const dirs = readdirSync('appliances', { withFileTypes: true }).filter(d => d.isDirectory()).map(d => d.name);
   assert.deepEqual(CATALOG.map(a => a.slug).sort(), dirs.sort());
   CATALOG.forEach((a, i) => {
-    // Pages keep the number they had on the coming-soon list, so numbers rise but may skip.
-    assert.ok(i === 0 ? a.no >= 1 : a.no > CATALOG[i - 1].no, `${a.slug} is No. ${a.no}`);
+    // Pages keep their coming-soon number, so the list can skip numbers that are not built yet.
+    assert.ok(a.no > (CATALOG[i - 1]?.no ?? 0), `${a.slug}: numbers increase down the catalog`);
     const html = readFileSync(`appliances/${a.slug}/index.html`, 'utf8');
     assert.match(html, new RegExp(`No\\. ${String(a.no).padStart(2, '0')}<`), a.slug);
     assert.match(html, new RegExp(`<h1>${a.title}</h1>`), a.slug);
