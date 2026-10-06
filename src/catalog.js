@@ -6,6 +6,7 @@ export const CATALOG = [
   { slug: 'door-knob', no: 4, title: 'Door Knob' },
   { slug: 'door-lock', no: 5, title: 'Door Lock' },
   { slug: 'espresso-machine', no: 6, title: 'Espresso Machine' },
+  { slug: 'mixer-grinder', no: 7, title: 'Mixer Grinder' },
 ];
 
 export const applianceUrl = slug => `/appliances/${slug}`;
