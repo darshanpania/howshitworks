@@ -1,0 +1,28 @@
+// Each step sets the cycle mode, where the water starts, the camera view, and which parts
+// are cut away (xray). plate: 0 shows the pulsator, 1 swaps in an agitator.
+export const WASHER_STORY = [
+  { t: 'A valve lets the water in', part: 'Inlet valve · Dispenser', explode: 0, focus: ['inlet', 'water'], cut: true,
+    xray: ['cabinet', 'deck', 'lid', 'tub'], view: 'valve', mode: 'fill', start: 'empty', plate: 0,
+    d: 'Close the lid and press start. On the back, an electromagnet in the inlet valve lifts a small plunger, and tap water flows in at about 10 litres a minute. It runs through the detergent dispenser and falls into the basket.' },
+  { t: 'A pressure sensor measures the water', part: 'Air chamber · Hose · Sensor', explode: 0, focus: ['sensor', 'water'], cut: true,
+    xray: ['cabinet', 'deck', 'lid', 'tub'], view: 'back', mode: 'fill', start: 'half', plate: 0,
+    d: 'A thin hose runs from an air chamber at the bottom of the tub to a sensor at the top. Rising water traps the air in the hose and squeezes it: 25 cm of water pushes with about 2.5 kPa. At the level set for the load, the sensor closes the valve.' },
+  { t: 'The basket sits inside a tub', part: 'Outer tub · Basket', explode: 0.4, focus: ['tub', 'basket'], cut: true,
+    xray: ['cabinet', 'deck', 'lid'], view: 'lift', mode: 'hold', start: 'full', plate: 0,
+    d: 'The plastic outer tub holds the water and does not turn. Inside it, a stainless steel basket about 49 cm across holds the clothes. Hundreds of small holes let the water through, so the level is the same in both.' },
+  { t: 'The pulsator churns the clothes', part: 'Pulsator', explode: 0, focus: ['pulsator'], cut: true,
+    xray: ['cabinet', 'deck', 'lid', 'tub', 'basket', 'clothes'], view: 'top', mode: 'wash', start: 'full', plate: 0,
+    d: 'A finned disc at the bottom of the basket turns one way for about a second at 140 rpm, stops, and turns back. Its fins throw the water out to the wall. The water rises up the wall and falls into the middle, so the clothes roll over and rub through the soapy water.' },
+  { t: 'Or a tall agitator does the work', part: 'Agitator', explode: 0, focus: ['agitator', 'clothes'], cut: true,
+    xray: ['cabinet', 'deck', 'lid', 'tub', 'basket'], view: 'top', mode: 'wash', start: 'full', plate: 1,
+    d: 'Many machines, most of all in the US, have an agitator: a tall finned post in the middle of the basket. It twists back and forth in the same way and drags the clothes around the post. It cleans hard, but it is rougher on fabric and takes space from the load.' },
+  { t: 'A motor, a belt and a gearbox drive it', part: 'Motor · Belt · Clutch', explode: 0, focus: ['motor', 'belt', 'clutch'], cut: true,
+    xray: ['cabinet', 'deck', 'lid'], view: 'low', mode: 'wash', start: 'full', plate: 0,
+    d: 'Under the tub, a 1,400 rpm motor drives a belt to a pulley twice as big: 700 rpm. In wash mode, a planetary gear in the clutch cuts that by 5 to 140 rpm, with 5 times the torque. The motor reverses for each stroke, and a brake band holds the basket still.' },
+  { t: 'The drain opens and the basket spins', part: 'Drain valve · Basket', explode: 0, focus: ['drain', 'basket'], cut: true,
+    xray: ['cabinet', 'deck', 'lid', 'tub'], view: 'front', mode: 'spin', start: 'full', plate: 0,
+    d: 'A small drain motor pulls a cable that does two jobs. It opens the drain valve, and it moves the clutch to spin. The brake lets go and the basket locks to the pulsator. At 700 rpm the wall pushes on the clothes with about 134 times their weight, and the water flies out through the holes.' },
+  { t: 'A balance ring calms the wobble', part: 'Balance ring · Suspension', explode: 0, focus: ['ring', 'springs'], cut: true,
+    xray: ['cabinet', 'deck', 'lid', 'tub', 'ring'], view: 'side', mode: 'balance', start: 'spin', plate: 0,
+    d: 'Clothes seldom spread evenly, and a lump on one side shakes the tub. A hollow ring on top of the basket holds salt water. At speed, the liquid moves to the side opposite the lump and evens it out. Four rods with springs hang the tub from the top corners and absorb what is left.' },
+];
