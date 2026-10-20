@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Electric Guitar · How Shit Works</title>
+  <meta name="description" content="How an electric guitar works: steel strings, frets, magnetic pickups, the coil, the 5-way switch, hum cancelling, the volume and tone pots and the output jack, in 8 steps.">
+  <link rel="icon" type="image/svg+xml" href="/brand/logo.svg">
+  <link rel="canonical" href="https://howshitworks.darshanpania.me/appliances/electric-guitar">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="How Shit Works">
+  <meta property="og:title" content="Electric Guitar · How Shit Works">
+  <meta property="og:description" content="How an electric guitar works: steel strings, frets, magnetic pickups, the coil, the 5-way switch, hum cancelling, the volume and tone pots and the output jack, in 8 steps.">
+  <meta property="og:url" content="https://howshitworks.darshanpania.me/appliances/electric-guitar">
+  <meta property="og:image" content="https://howshitworks.darshanpania.me/brand/og/electric-guitar.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="How Shit Works: Electric Guitar. A 3D model of the electric guitar, taken apart.">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Electric Guitar · How Shit Works">
+  <meta name="twitter:description" content="How an electric guitar works: steel strings, frets, magnetic pickups, the coil, the 5-way switch, hum cancelling, the volume and tone pots and the output jack, in 8 steps.">
+  <meta name="twitter:image" content="https://howshitworks.darshanpania.me/brand/og/electric-guitar.jpg">
+  <meta name="twitter:image:alt" content="How Shit Works: Electric Guitar. A 3D model of the electric guitar, taken apart.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  <script>try{var t=localStorage.getItem('hsw-theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t}catch(e){}</script>
+  <link rel="stylesheet" href="/src/base.css">
+  <link rel="stylesheet" href="./page.css">
+</head>
+<body>
+<div class="app">
+  <div class="stage">
+    <canvas id="c"></canvas>
+    <div class="brand">
+      <nav class="crumbs" aria-label="Site">
+        <a class="home-link" href="/"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg>All appliances</a>
+        <span class="kicker"><span class="site-name">How Shit Works · </span>No. 17</span>
+      </nav>
+      <h1>Electric Guitar</h1>
+      <dl class="readout" id="readout" aria-live="off">
+        <div><dt>Note</dt><dd id="r-note">E2 · 82.4 Hz</dd></div>
+        <div><dt>Pull</dt><dd id="r-pull">7.9 kg</dd></div>
+        <div><dt>Pickup</dt><dd id="r-pickup">Neck</dd></div>
+        <div class="trace"><dt id="r-peak">0 mV</dt><dd><svg id="r-trace" viewBox="0 0 400 60" preserveAspectRatio="none" aria-hidden="true"><line x1="0" y1="30" x2="400" y2="30"/><polyline points="0,30 400,30"/></svg></dd></div>
+      </dl>
+    </div>
+    <div class="hud">
+      <button class="btn primary play" id="play" type="button" aria-pressed="true" aria-label="Pause animation">
+        <svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.5" height="14" rx="1"/><rect x="14" y="5" width="3.5" height="14" rx="1"/></svg>
+        <svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 5.6v12.8a1 1 0 0 0 1.5.86l10-6.4a1 1 0 0 0 0-1.72l-10-6.4a1 1 0 0 0-1.5.86z"/></svg>
+      </button>
+      <button class="btn controls-toggle" id="controls-toggle" type="button" aria-label="Controls" aria-expanded="false" aria-controls="hud-controls">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg><span class="label">Controls</span>
+      </button>
+      <div class="hud-controls" id="hud-controls">
+        <div class="control"><label for="explode">Explode</label><output id="explode-out" for="explode">0%</output><input type="range" id="explode" min="0" max="100" value="0"></div>
+        <div class="control"><label for="fret">Fret</label><output id="fret-out" for="fret">Open</output><input type="range" id="fret" min="0" max="12" value="0"></div>
+      </div>
+    </div>
+  </div>
+  <aside class="panel">
+    <div class="panel-head">
+      <div class="panel-meta"><div class="kicker">The story in 8 steps</div><span class="count" id="progress-count" aria-hidden="true">01 / 08</span></div>
+      <div class="progress" id="progress" role="progressbar" aria-label="Story progress" aria-valuemin="1" aria-valuemax="8" aria-valuenow="1"></div>
+      <p class="hint">Drag to orbit. Tap a step to focus a part.</p>
+      <p class="keys"><kbd>←</kbd> <kbd>→</kbd> to step · <kbd>Space</kbd> to pause · <kbd>E</kbd> to explode</p>
+    </div>
+    <div class="steps" id="steps"></div>
+    <div class="panel-foot">
+      <button class="btn" id="prev" type="button" disabled>Back</button>
+      <button class="btn primary" id="next" type="button">Next</button>
+    </div>
+  </aside>
+</div>
+<script type="module" src="./main.js"></script>
+</body>
+</html>
