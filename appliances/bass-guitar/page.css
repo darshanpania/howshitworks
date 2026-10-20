@@ -1,0 +1,20 @@
+/* Page-specific styles for the bass guitar. Shared layout and the .readout live in /src/base.css. */
+.readout.live dd#r-v3 { color: var(--copper); }
+.readout dd#r-v1 { min-width: 10ch; text-align: right; }
+
+/* A small scope: the pickup's voltage over the last few cycles (or the neck's bow). The label is
+   its time span, so keep "ms" as written. In hum mode the two halves are drawn faint behind the output. */
+.readout .trace { align-items: center; }
+.readout .trace dt { text-transform: none; letter-spacing: .04em; white-space: nowrap; }
+.readout .trace dd { flex: 1; min-width: 96px; }
+.readout .trace svg { display: block; width: 100%; height: 26px; overflow: visible; }
+.readout .trace polyline { fill: none; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+.readout .trace .out { stroke: var(--copper); stroke-width: 1.5; }
+.readout .trace :is(.a, .b) { stroke: var(--muted); stroke-width: 1; opacity: .55; }
+@media (max-width: 800px) {
+  .readout .trace dd { min-width: 64px; }
+  .readout .trace svg { height: 14px; }
+}
+
+/* The landing card title grows into this title (cross-document view transition). */
+.brand h1 { view-transition-name: t-bass-guitar; width: fit-content; }
