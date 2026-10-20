@@ -1,0 +1,12 @@
+/* Page-specific styles for the concert speaker. Shared layout and the .readout live in /src/base.css. */
+/* The driver's name takes its band's colour, the same as the signal dots on the cable. */
+.readout dd#r-driver { min-width: 19ch; text-align: right; }
+.readout[data-band="woofers"] dd#r-driver { color: var(--copper); }
+.readout[data-band="mids"] dd#r-driver { color: var(--brass); }
+.readout[data-band="highs"] dd#r-driver { color: var(--blueprint); }
+/* Past the cone's limit: the stroke the note would need, marked. */
+.readout.over dd#r-travel { color: var(--copper); }
+@media (max-width: 800px) { .readout dd#r-driver { min-width: 0; } }
+
+/* The landing card title grows into this title (cross-document view transition). */
+.brand h1 { view-transition-name: t-concert-speaker; width: fit-content; }
