@@ -16,6 +16,7 @@ import { LOCK, RIGHT, WRONG, PIN_X, KEY_PIN, PERIOD, OUT, keyTop, stacks, pose }
 const VIEWS = {
   mid: { r: 95, theta: -0.5, phi: 1.2, target: [10, 3, 0] },
   pins: { r: 68, theta: -0.4, phi: 1.3, target: [13, 6, 0] },
+  key: { r: 105, theta: -0.4, phi: 1.3, target: [-8, 5, 0] }, // wider and further left: the key stays in view while it waits outside
   all: { r: 190, theta: -1.15, phi: 1.1, target: [22, 0, -30] },
 };
 const stage = createStage(document.getElementById('c'), {
@@ -153,7 +154,10 @@ const story = createStoryUI({
   story: LOCK_STORY, state,
   onStep: s => {
     state.focus = s.focus; state.cut = s.cut; state.mode = s.mode; state.t = 0;
-    const v = VIEWS[s.view]; camGoal = { ...v, target: new THREE.Vector3(...v.target) };
+    const v = VIEWS[s.view];
+    // The key waits 45 mm outside the plug: on a narrow stage the camera moves back to keep it in view.
+    const widen = s.view === 'key' ? Math.max(1, Math.min(1.5, 1.5 / stage.camera.aspect)) : 1;
+    camGoal = { ...v, r: v.r * widen, target: new THREE.Vector3(...v.target) };
     cam.theta = v.theta + THREE.MathUtils.euclideanModulo(cam.theta - v.theta + Math.PI, 2 * Math.PI) - Math.PI; // take the short way round
   },
 });

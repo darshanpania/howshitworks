@@ -17,8 +17,23 @@ export function keyAction({ key, target, altKey, ctrlKey, metaKey, repeat }) {
   if (key === 'ArrowLeft') return 'prev';
   if (repeat) return null;
   if (key === 'e' || key === 'E') return 'explode';
+  if (key === 'r' || key === 'R') return 'reset';
+  if (/^[1-9]$/.test(key)) return `step-${key}`; // 1 to 9 go straight to that step
   if (key === ' ' || key === 'Spacebar') return ['BUTTON', 'A', 'SUMMARY'].includes(tag) ? null : 'play';
   return null;
+}
+
+// The step a link opens on: ?step=3 is the third step. Anything else is the first step.
+export function stepFromSearch(search, count) {
+  const n = Number(new URLSearchParams(search ?? '').get('step'));
+  return Number.isInteger(n) && n >= 1 && n <= count ? n - 1 : 0;
+}
+// The address of a step: the first step is the plain page, so shared links stay clean.
+export function stepSearch(search, index) {
+  const q = new URLSearchParams(search ?? '');
+  if (index > 0) q.set('step', String(index + 1)); else q.delete('step');
+  const text = q.toString().replace(/=(?=&|$)/g, ''); // keep a bare ?capture bare
+  return text ? `?${text}` : '';
 }
 
 // Shows a range input's value in its <output id="<id>-out"> and fills the track up to the thumb.
@@ -37,6 +52,9 @@ export function createStoryUI({ story, state, onStep, doc = document, slug = app
   const list = $('steps'), explode = $('explode'), play = $('play'), prev = $('prev'), next = $('next');
   const bar = $('progress'), count = $('progress-count');
   const onward = nextAppliance(slug), last = story.length - 1;
+  const win = doc.defaultView;
+  // A link with ?step=N opens on that step: the page's own first setStep call lands there.
+  let opening = stepFromSearch(win?.location?.search, story.length);
   story.forEach((s, i) => {
     const b = doc.createElement('button'); b.className = 'step'; b.id = `step-${i}`;
     b.innerHTML = `<span class="n">${pad(i + 1)}</span><span><span class="t">${s.t}</span><span class="d">${s.d}</span><span class="part">${s.part}</span></span>`;
@@ -49,8 +67,17 @@ export function createStoryUI({ story, state, onStep, doc = document, slug = app
 
   // source is how the reader got here: 'list', 'next', 'prev' or 'key'. Internal calls pass none.
   function setStep(index, scroll = true, source) {
-    state.step = Math.max(0, Math.min(last, index));
+    if (opening && !source) index = opening;
+    opening = 0;
+    index = Math.max(0, Math.min(last, index));
+    // Choosing the step already in view puts its camera view back (src/engine/framing.js).
+    if (source && index === state.step) state.viewReset = (state.viewReset ?? 0) + 1;
+    state.step = index;
     const s = story[state.step];
+    // Keep the address on the step in view, so a copied link or a reload comes back to it.
+    if (source && win?.history?.replaceState) {
+      try { win.history.replaceState(win.history.state, '', `${win.location.pathname}${stepSearch(win.location.search, state.step)}${win.location.hash}`); } catch { /* file: pages */ }
+    }
     if (source) track('story_step_viewed', { step: state.step + 1, step_title: s.t, steps_total: story.length, source });
     setExplode(s.explode);
     list.querySelectorAll('.step').forEach((el, j) => {
@@ -90,6 +117,16 @@ export function createStoryUI({ story, state, onStep, doc = document, slug = app
     doc.defaultView.location.assign(onward.href);
   }
 
+  // For the model: a tap on a part goes to its step (src/engine/pick.js).
+  state.goTo = (index, source = 'model') => setStep(index, true, source);
+
+  // A double tap on the model goes back to the step's own view and explode amount.
+  state.resetView = () => {
+    state.viewReset = (state.viewReset ?? 0) + 1;
+    setStep(state.step, false);
+    track('view_reset', { step: state.step + 1 });
+  };
+
   play.addEventListener('click', () => togglePlay());
   explode.addEventListener('input', e => { state.targetExplode = e.target.value / 100; showExplode(); });
   explode.addEventListener('change', e => track('control_changed', { control: 'explode', value: Number(e.target.value), step: state.step + 1 }));
@@ -115,6 +152,8 @@ export function createStoryUI({ story, state, onStep, doc = document, slug = app
     if (action === 'next') goNext('key');
     else if (action === 'prev') setStep(state.step - 1, true, 'key');
     else if (action === 'play') togglePlay('key');
+    else if (action === 'reset') state.resetView();
+    else if (action.startsWith('step-')) { if (Number(action.slice(5)) <= story.length) setStep(Number(action.slice(5)) - 1, true, 'key'); }
     else {
       setExplode(state.targetExplode >= 0.5 ? 0 : 1);
       track('control_changed', { control: 'explode', value: Number(explode.value), step: state.step + 1, source: 'key' });

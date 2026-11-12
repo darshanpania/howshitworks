@@ -5,6 +5,7 @@ import { softDot, speckleTexture, heatColor, createParticles } from '../../src/k
 import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
 import { createParts } from '../../src/engine/parts.js';
 import { createCallouts } from '../../src/engine/callouts.js';
+import { createFraming } from '../../src/engine/framing.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -189,16 +190,19 @@ const steam = createParticles(scene, 90, {
 });
 
 // ---------- State and UI ----------
-const state = { step: 0, explode: 0, targetExplode: 0, playing: true, browning: 3, toast: 0, focus: [], radiant: false, heat: false, down: false, glow: 0, lift: 0, liftV: 0 };
+const state = { step: 0, explode: 0, targetExplode: 0, playing: true, browning: 3, toast: 0, focus: [], radiant: false, heat: false, down: false, glow: 0, bend: 0, lift: 0, liftV: 0 };
 const story = createStoryUI({
   story: TOASTER_STORY, state,
   onStep: s => {
     state.focus = s.focus.map(name => ALIAS[name] || name); state.radiant = s.focus.includes('heat');
     state.heat = s.heat; state.down = s.down;
+    // The browning step starts with pale bread, so the reader sees it turn brown.
+    if (state.radiant) state.toast = Math.min(state.toast, 0.25 * state.browning / 5);
   },
 });
 bindRange('browning', v => { state.browning = v; });
 createCallouts(stage, { parts, state, story: TOASTER_STORY });
+createFraming(stage, { parts, state }); // the camera moves in on the parts in focus
 
 const black = new THREE.Color(0x000000), wireColor = new THREE.Color();
 const focusStyle = {
@@ -229,6 +233,17 @@ function playSounds(dt) {
   was.lift = state.lift;
 }
 
+// ---------- Readout ----------
+const readout = { box: document.getElementById('readout'), circuit: document.getElementById('r-current'), wires: document.getElementById('r-wires'), toast: document.getElementById('r-toast') };
+let readoutTimer = 0;
+function showReadout() {
+  const closed = state.heat && state.playing;
+  readout.circuit.textContent = closed ? '3.5 A' : '0 A';
+  readout.wires.textContent = `${Math.round((25 + state.glow * 575) / 5) * 5}°C`;
+  readout.toast.textContent = state.toast < 0.02 ? 'Raw' : `${Math.round(state.toast * 100)}% brown`;
+  readout.box.classList.toggle('on', closed);
+}
+
 // ---------- Frame ----------
 const rawCrumb = linear(0xf1d9a6), toastCrumb = linear(0x8a4a22), rawCrust = linear(0xc98a4a), toastCrust = linear(0x3e1f0e);
 startLoop(stage, (dt, now) => {
@@ -254,11 +269,16 @@ startLoop(stage, (dt, now) => {
   const irFocus = state.radiant ? 0.32 : 0.1;
   irPlanes.forEach(plane => { plane.material.opacity = state.glow * irFocus * (0.85 + Math.sin(now / 140) * 0.15); });
 
-  if (state.playing) state.toast += dt * (state.heat ? 0.1 + state.browning * 0.03 : 0); state.toast = THREE.MathUtils.clamp(state.toast, 0, state.browning / 5);
+  if (state.playing) state.toast += dt * (state.heat ? 0.03 + state.browning * 0.01 : 0) * state.glow; 
+  // Until the browning step the bread only gets pale gold; the rest happens in front of the reader.
+  state.toast = THREE.MathUtils.clamp(state.toast, 0, (state.step >= 4 ? 1 : 0.25) * state.browning / 5);
   if (state.step === 0) state.toast = 0; // a fresh slice at the start of the story
   const crumb = rawCrumb.clone().lerp(toastCrumb, state.toast), crust = rawCrust.clone().lerp(toastCrust, state.toast);
   parts.bread.meshes.forEach(mesh => { mesh.material[0].color.copy(crumb); mesh.material[1].color.copy(crust); });
-  bimetal.rotation.z = -state.glow * state.toast * 0.35;
+  // The strip bends as it warms. On the thermostat step it is fully bent: it has just opened the circuit.
+  const bendTarget = state.step === 5 ? 1 : state.glow * Math.min(1, state.toast / Math.max(0.2, state.browning / 5));
+  state.bend += (bendTarget - state.bend) * Math.min(1, dt * (reduced ? 60 : 1.5));
+  bimetal.rotation.z = -state.bend * 0.3;
   knob.rotation.x = -0.6 + state.browning * 0.45;
 
   // Steam rises once the bread is warm.
@@ -272,5 +292,7 @@ startLoop(stage, (dt, now) => {
     steam.commit();
   }
   playSounds(dt);
+  readoutTimer -= dt;
+  if (readoutTimer <= 0) { showReadout(); readoutTimer = 0.15; }
 });
 story.setStep(0, false);

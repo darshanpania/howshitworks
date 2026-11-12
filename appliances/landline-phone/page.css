@@ -8,6 +8,11 @@
 .readout .trace dd { flex: 1; min-width: 96px; }
 .readout .trace svg { display: block; width: 100%; height: 26px; overflow: visible; }
 .readout .trace polyline { fill: none; stroke: var(--copper); stroke-width: 1.5; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+/* One fixed width, so the box does not change size with the scale label or run under the title. */
+@media (min-width: 801px) {
+  .readout { width: 250px; }
+  .brand:has(.readout) :is(.crumbs, h1) { max-width: calc(100% - 270px); }
+}
 @media (max-width: 800px) {
   .readout .trace dd { min-width: 64px; }
   .readout .trace svg { height: 14px; }
