@@ -20,6 +20,7 @@ export const CATALOG = [
   { slug: 'amplifier', no: 18, title: 'Amplifier' },
   { slug: 'concert-speaker', no: 19, title: 'Concert Speaker' },
   { slug: 'bass-guitar', no: 20, title: 'Bass Guitar' },
+  { slug: 'noise-cancelling-earphones', no: 21, title: 'Noise Cancelling Earphones' },
 ];
 
 export const applianceUrl = slug => `/appliances/${slug}`;
