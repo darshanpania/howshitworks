@@ -9,7 +9,7 @@ export const FAN_STORY = [
    d:'In a ceiling fan, the rotor is on the outside. It is a ring of aluminium bars around the stator. The rotating field induces currents in the bars, and those currents make their own field. The rotor gets pulled around, always a little slower than the field: about 350 rpm at full speed. This is an induction motor.'},
   {t:'Bearings let the casing spin', part:'Ball bearings ×2', explode:0.8, focus:['bearTop','bearBot'], cut:true,
    d:'Two ball bearings sit between the fixed shaft and the spinning casing. They carry the weight of the blades and keep the casing centred. Worn bearings are the usual cause of a wobbling or noisy fan.'},
-  {t:'The blades push air down', part:'Blades ×3', explode:0.2, focus:['blades'], cut:false,
+  {t:'The blades push air down', part:'Blades ×3', explode:0.2, focus:['blades'], cut:false, air:true,
    d:'The blades bolt to the spinning casing. Each blade is tilted by 10° to 12°. As it sweeps around, the tilt pushes air down, the same way a screw pushes into wood. Three blades is the common count in India because it moves the most air for the least noise.'},
   {t:'Air moves, you feel cooler', part:'Airflow', explode:0, focus:['blades'], cut:false, air:true,
    d:'The fan does not cool the air. It moves the air past your skin, so sweat evaporates faster. Air goes down in the middle of the room and comes back up along the walls. At full speed a 1200 mm fan moves about 200 cubic metres per minute.'}

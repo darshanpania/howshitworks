@@ -66,7 +66,7 @@ export function createStage(canvas, {
     after.forEach(fn => fn());
   }
   return {
-    renderer, scene, camera, cam, resize, render, pbr, intro, capture,
+    renderer, scene, camera, cam, zoom, resize, render, pbr, intro, capture,
     beforeRender: fn => before.push(fn), afterRender: fn => after.push(fn),
   };
 }

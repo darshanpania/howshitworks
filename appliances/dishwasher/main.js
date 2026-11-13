@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
 import { createParts, looksInside } from '../../src/engine/parts.js';
 import { createCallouts } from '../../src/engine/callouts.js';
+import { createFraming } from '../../src/engine/framing.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -408,6 +409,7 @@ const story = createStoryUI({
 });
 bindRange('angle', v => { state.jetAngle = v; document.getElementById('angle-out').textContent = `${v}°`; });
 createCallouts(stage, { parts, state, story: DISHWASHER_STORY });
+createFraming(stage, { parts, state }); // the camera moves in on the parts in focus
 
 const INSIDE = ['shell', 'door'];
 const ON_DOOR = ['dispenser', 'rinseAid']; // cut away with the door unless they are in focus

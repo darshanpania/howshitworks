@@ -11,6 +11,11 @@
 .readout .trace polyline { fill: none; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
 .readout .trace .out { stroke: var(--copper); stroke-width: 1.5; }
 .readout .trace :is(.a, .b) { stroke: var(--muted); stroke-width: 1; opacity: .55; }
+/* One fixed width, so the box does not change size with the scale label or run under the title. */
+@media (min-width: 801px) {
+  .readout { width: 250px; }
+  .brand:has(.readout) :is(.crumbs, h1) { max-width: calc(100% - 270px); }
+}
 @media (max-width: 800px) {
   .readout .trace dd { min-width: 64px; }
   .readout .trace svg { height: 14px; }

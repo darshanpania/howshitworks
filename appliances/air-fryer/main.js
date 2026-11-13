@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
 import { createParts, looksInside } from '../../src/engine/parts.js';
 import { createCallouts } from '../../src/engine/callouts.js';
+import { createFraming } from '../../src/engine/framing.js';
 import { createStoryUI, bindRange, showRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -392,6 +393,7 @@ const temp = bindRange('temp', v => { state.set = v; });
 const showTemp = () => showRange(temp, `${temp.value}°C`);
 temp.addEventListener('input', showTemp); showTemp();
 createCallouts(stage, { parts, state, story: FRYER_STORY });
+createFraming(stage, { parts, state }); // the camera moves in on the parts in focus
 
 // The housing goes glassy in cutaway steps, with the panel and the vent that sit on it;
 // when a step looks inside, other parts fade to x-ray.

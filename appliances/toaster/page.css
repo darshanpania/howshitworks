@@ -2,3 +2,6 @@
 
 /* The landing card title grows into this title (cross-document view transition). */
 .brand h1 { view-transition-name: t-toaster; width: fit-content; }
+
+/* The readout turns copper while current flows. */
+.readout.on dd#r-current, .readout.on dd#r-wires { color: var(--copper); }

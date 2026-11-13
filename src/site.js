@@ -75,10 +75,14 @@ export function mountSiteTools(container, { sound = null, doc = document } = {})
   const shareBtn = button(doc, 'share-toggle', 'Share this page', icon('share'));
   shareBtn.setAttribute('aria-haspopup', 'true'); shareBtn.setAttribute('aria-expanded', 'false');
   const menu = doc.createElement('div'); menu.className = 'share-menu'; menu.setAttribute('role', 'menu'); menu.hidden = true;
-  const canonical = doc.querySelector('link[rel=canonical]')?.href || win.location.href;
+  const base = doc.querySelector('link[rel=canonical]')?.href || win.location.href;
+  // On an appliance page the link opens on the step in view (story-ui.js keeps ?step=N in the address).
+  const here = () => {
+    const step = /^[1-9]\d?$/.exec(new URLSearchParams(win.location?.search ?? '').get('step') ?? '');
+    return step ? `${base.split('?')[0]}?step=${step[0]}` : base;
+  };
   const title = doc.title.replace(' · How Shit Works', '');
   const text = title === 'How Shit Works' ? 'How Shit Works: everyday appliances, taken apart in 3D.' : `How a ${title.toLowerCase()} works, taken apart in 3D.`;
-  const links = shareLinks(canonical, text);
   const status = doc.createElement('p'); status.className = 'share-status'; status.setAttribute('role', 'status');
   const items = [
     ['copy', 'Copy link', 'link'],
@@ -93,7 +97,7 @@ export function mountSiteTools(container, { sound = null, doc = document } = {})
   menu.append(status);
 
   const copy = async () => {
-    try { await win.navigator.clipboard.writeText(canonical); return true; } catch { return false; }
+    try { await win.navigator.clipboard.writeText(here()); return true; } catch { return false; }
   };
   const say = msg => { status.textContent = msg; };
   function setOpen(open) {
@@ -103,7 +107,7 @@ export function mountSiteTools(container, { sound = null, doc = document } = {})
   shareBtn.addEventListener('click', () => setOpen(menu.hidden));
   menu.addEventListener('click', async e => {
     const item = e.target.closest('.share-item'); if (!item) return;
-    const target = item.dataset.target;
+    const target = item.dataset.target, canonical = here(), links = shareLinks(canonical, text);
     track('page_shared', { target });
     if (target === 'copy') { say(await copy() ? 'Link copied.' : canonical); return; }
     if (target === 'instagram') {

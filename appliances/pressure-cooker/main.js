@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
 import { createParts, looksInside } from '../../src/engine/parts.js';
 import { createCallouts } from '../../src/engine/callouts.js';
+import { createFraming } from '../../src/engine/framing.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -136,6 +137,7 @@ const story = createStoryUI({
 });
 bindRange('flame', v => { state.flameLevel = v; });
 createCallouts(stage, { parts, state, story: COOKER_STORY });
+createFraming(stage, { parts, state }); // the camera moves in on the parts in focus
 const cfg = { ...COOKER };
 
 const INSIDE = ['pot', 'lid'];
@@ -151,12 +153,13 @@ const focusStyle = {
   },
 };
 
-const readout = { box: document.getElementById('readout'), p: document.getElementById('r-pressure'), t: document.getElementById('r-temp'), w: document.getElementById('r-whistles') };
+const readout = { box: document.getElementById('readout'), p: document.getElementById('r-pressure'), t: document.getElementById('r-temp'), b: document.getElementById('r-boil'), w: document.getElementById('r-whistles') };
 let readoutTimer = 0;
 function showReadout() {
   const lidFree = state.cooling && sim.p < 0.02;
   readout.p.textContent = `+${sim.p.toFixed(2)} bar`;
-  readout.t.textContent = `${sim.T.toFixed(0)}°C${sim.p > 0.02 ? ` (boils at ${boilingPointC(sim.p).toFixed(0)}°C)` : ''}`;
+  readout.t.textContent = `${sim.T.toFixed(0)}°C`;
+  readout.b.textContent = `${boilingPointC(sim.p).toFixed(0)}°C`; // its own row, so the box stays narrow
   readout.w.textContent = lidFree ? `${sim.whistles} · safe to open` : String(sim.whistles);
   readout.box.classList.toggle('hot', sim.p > 0.5);
 }

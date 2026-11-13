@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { reducedMotion } from './loop.js';
+import { createPicking } from './pick.js';
 
 // Engineering-drawing callouts: a dot on each part in focus, a thin leader line that
 // breaks at 45° to a numbered balloon, and the step's part name. The balloon sits on the
@@ -141,5 +142,7 @@ export function createCallouts(stage, { parts, state, story, max = 3, doc = docu
   }
 
   stage.afterRender(update);
-  return { update };
+  // Every page with callouts also lets the reader tap a part to go to its step.
+  const picking = createPicking(stage, { parts, state, story, doc });
+  return { update, picking };
 }
