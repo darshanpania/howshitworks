@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
 import { createParts, looksInside } from '../../src/engine/parts.js';
 import { createCallouts } from '../../src/engine/callouts.js';
+import { createFraming } from '../../src/engine/framing.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -368,6 +369,7 @@ bindRange('grind', v => {
   grindInput.setAttribute('aria-valuetext', grindAt(v).label);
 });
 createCallouts(stage, { parts, state, story: ESPRESSO_STORY });
+createFraming(stage, { parts, state }); // the camera moves in on the parts in focus
 // ?capture: expose the simulation too, so a thumbnail can be framed in the middle of a shot.
 if (stage.capture) globalThis.__hswSim = { sim, run(seconds) { for (let t = 0; t < seconds; t += 0.02) stepMachine(sim, 0.02, { ...state.mode, grind: state.grind }); } };
 

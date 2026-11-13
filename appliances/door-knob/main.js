@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
 import { createParts, looksInside } from '../../src/engine/parts.js';
 import { createCallouts } from '../../src/engine/callouts.js';
+import { createFraming } from '../../src/engine/framing.js';
 import { createStoryUI } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion as reduced } from '../../src/engine/loop.js';
@@ -166,6 +167,7 @@ const story = createStoryUI({
   onStep: s => { state.focus = s.focus; state.cut = s.cut; state.mode = s.mode; state.t = 0; },
 });
 createCallouts(stage, { parts, state, story: KNOB_STORY });
+createFraming(stage, { parts, state }); // the camera moves in on the parts in focus
 
 const focusStyle = {
   highlight: 0.18,

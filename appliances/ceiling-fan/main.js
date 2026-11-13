@@ -2,11 +2,13 @@ import * as THREE from 'three';
 import { createStage, addFloor, addStudioLights } from '../../src/engine/stage.js';
 import { createParts, looksInside } from '../../src/engine/parts.js';
 import { createCallouts } from '../../src/engine/callouts.js';
+import { createFraming } from '../../src/engine/framing.js';
 import { createStoryUI, bindRange } from '../../src/engine/story-ui.js';
 import { sound } from '../../src/engine/sound.js';
 import { startLoop, reducedMotion } from '../../src/engine/loop.js';
 import { createMaterials } from '../../src/kit/materials.js';
-import { createParticles } from '../../src/kit/effects.js';
+import { createParticles, softDot } from '../../src/kit/effects.js';
+import { onPalette } from '../../src/engine/studio.js';
 import { box, lathe } from '../../src/kit/shapes.js';
 import { FAN_STORY } from './story.js';
 
@@ -146,9 +148,11 @@ function bladeGeometry({ span = 2.7, root = 0.3, chord = 0.44, camber = 0.024, t
 // Airflow particles: down under the blades, out along the floor, up the walls, back in near the ceiling.
 const AIR_N = 320, FLOOR = -3.1, CEIL = -0.3, R_IN = 3.0, R_OUT = 6.2;
 const air = createParticles(stage.scene, AIR_N, {
-  color: 0x5E8DC4, size: 0.07,
+  color: 0x5E8DC4, size: 0.2, map: softDot(),
   seed: () => ({a: Math.random()*Math.PI*2, u: Math.random(), s: 0.7+Math.random()*0.6, j: Math.random()}),
 });
+air.points.frustumCulled = false; // the cloud moves every frame; its first bounds are stale
+onPalette(p => air.material.color.set(p.ghost).convertSRGBToLinear()); // dark ink on paper, light blue on navy
 // u runs 0..1 around one loop of the room; returns [radius, y].
 const DOWN = CEIL-FLOOR, OUT = R_OUT-R_IN, LOOP = 2*DOWN + 2*OUT;
 function airPath(u, j){
@@ -168,6 +172,7 @@ const story = createStoryUI({
 });
 bindRange('speed', v => { state.speed = v; });
 createCallouts(stage, { parts, state, story: FAN_STORY });
+createFraming(stage, { parts, state }); // the camera moves in on the parts in focus
 
 // When a step looks inside, unfocused parts fade; in cutaway steps the rotor casing and top cover go glassy.
 const focusStyle = {
@@ -187,6 +192,18 @@ const focusStyle = {
 const hum = sound.loop({ type: 'tone', wave: 'triangle', freq: 100 });
 const wind = sound.loop({ type: 'noise', filter: 'lowpass', freq: 300, q: 0.7 });
 
+// ---------- Readout ----------
+// The field turns at 375 rpm whenever the fan has power: 50 Hz and 16 poles fix that speed.
+// The rotor follows a little slower (about 350 rpm at full speed), and the air it moves
+// goes up and down with the rotor speed (about 200 cubic metres per minute at full speed).
+const readout = { field: document.getElementById('r-field'), rotor: document.getElementById('r-rotor'), air: document.getElementById('r-air') };
+let readoutTimer = 0;
+function showReadout(run) {
+  readout.field.textContent = state.playing && state.speed > 0 ? '375 rpm' : 'Off';
+  readout.rotor.textContent = `${Math.round(350 * run / 10) * 10} rpm`;
+  readout.air.textContent = `${Math.round(200 * run / 10) * 10} m³/min`;
+}
+
 // ---------- Frame ----------
 let spin = 0;
 startLoop(stage, dt => {
@@ -197,6 +214,8 @@ startLoop(stage, dt => {
   state.angle += dt * spin;
   spinner.rotation.y = state.angle;
   const run = Math.min(1, spin / 11); // 0 at rest, 1 at top speed
+  readoutTimer -= dt;
+  if (readoutTimer <= 0) { showReadout(run); readoutTimer = 0.15; }
   hum.set(0.035 * Math.min(1, spin / 2) * (0.4 + 0.6 * state.speed / 5));
   wind.set(0.22 * run * (0.75 + 0.25 * Math.sin(state.angle * 3)), 250 + 650 * run);
   // air

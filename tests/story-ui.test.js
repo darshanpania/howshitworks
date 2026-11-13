@@ -12,6 +12,10 @@ test('arrows step, Space plays, E explodes', () => {
   assert.equal(key(' '), 'play');
   assert.equal(key('e'), 'explode');
   assert.equal(key('E'), 'explode');
+  assert.equal(key('r'), 'reset');
+  assert.equal(key('3'), 'step-3');
+  assert.equal(key('0'), null);
+  assert.equal(key('3', 'INPUT'), null);
   assert.equal(key('x'), null);
 });
 

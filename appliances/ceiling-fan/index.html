@@ -38,6 +38,11 @@
         <span class="kicker"><span class="site-name">How Shit Works · </span>No. 01</span>
       </nav>
       <h1>Ceiling Fan</h1>
+      <dl class="readout" id="readout" aria-live="off">
+        <div><dt>Field</dt><dd id="r-field">375 rpm</dd></div>
+        <div><dt>Rotor</dt><dd id="r-rotor">0 rpm</dd></div>
+        <div><dt>Air</dt><dd id="r-air">0 m³/min</dd></div>
+      </dl>
     </div>
     <div class="hud">
       <button class="btn primary play" id="play" type="button" aria-pressed="true" aria-label="Pause animation">
@@ -57,8 +62,8 @@
     <div class="panel-head">
       <div class="panel-meta"><div class="kicker">The story in 7 steps</div><span class="count" id="progress-count" aria-hidden="true">01 / 07</span></div>
       <div class="progress" id="progress" role="progressbar" aria-label="Story progress" aria-valuemin="1" aria-valuemax="7" aria-valuenow="1"></div>
-      <p class="hint">Drag to orbit. Tap a step to focus a part.</p>
-      <p class="keys"><kbd>←</kbd> <kbd>→</kbd> to step · <kbd>Space</kbd> to pause · <kbd>E</kbd> to explode</p>
+      <p class="hint">Drag to orbit. Tap a part or a step to focus it.</p>
+      <p class="keys"><kbd>←</kbd> <kbd>→</kbd> step · <kbd>Space</kbd> pause · <kbd>E</kbd> explode · <kbd>R</kbd> reset</p>
     </div>
     <div class="steps" id="steps"></div>
     <div class="panel-foot">

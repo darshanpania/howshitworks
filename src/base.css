@@ -125,6 +125,15 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
   display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
   background: var(--accent); color: var(--accent-ink); font-size: 10px; letter-spacing: 0; font-variant-numeric: tabular-nums;
 }
+/* The step a part leads to, shown beside the mouse pointer (src/engine/pick.js). */
+.part-tip {
+  position: absolute; left: 0; top: 0; z-index: 3; display: flex; align-items: center; gap: 8px; max-width: min(320px, 70%);
+  padding: 4px 12px 4px 4px; border-radius: 999px; border: 1px solid var(--accent); background: var(--panel); box-shadow: var(--shadow-soft);
+  font: 500 12.5px/1.25 var(--font-body); color: var(--ink); pointer-events: none; opacity: 0; transition: opacity .12s ease;
+}
+.part-tip.on { opacity: 1; }
+.part-tip .callout-n { flex: none; font-family: var(--font-mono); }
+.part-tip-t { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @keyframes callout-draw { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
 @keyframes callout-halo { from { transform: scale(1); opacity: .7; } to { transform: scale(3.2); opacity: 0; } }
 @keyframes callout-in { from { opacity: 0; clip-path: inset(0 100% 0 0 round 999px); } to { opacity: 1; clip-path: inset(0 0 0 0 round 999px); } }
@@ -163,6 +172,9 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
 /* A soft halo keeps the title legible where the model passes behind it. */
 .brand h1 { text-shadow: 0 0 10px var(--bg), 0 0 4px var(--bg); }
 .crumbs .kicker { white-space: nowrap; padding: 6px 8px; border-radius: 999px; background: color-mix(in srgb, var(--bg) 82%, transparent); }
+/* On a narrow stage the readout box takes the top right: the kicker keeps only the number, so it stays clear of the box. */
+.stage { container-type: inline-size; }
+@container (max-width: 760px) { .brand:has(.readout) .site-name { display: none; } }
 
 /* Live numbers from the simulation. Pages add their own highlight colours in page.css. */
 .readout {
@@ -248,6 +260,8 @@ input[type=range]:active::-webkit-slider-thumb { transform: scale(1.1); }
   .readout {
     position: static; display: flex; flex-wrap: wrap; gap: 5px; margin-top: 10px; padding: 0; min-width: 0;
     background: none; border: 0; border-radius: 0;
+    /* No box here, so no blur or shadow either: they would show as a faint band across the model. */
+    -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: none;
   }
   .readout div {
     flex: none; align-items: baseline; gap: 5px; padding: 3px 8px; border-radius: 999px;

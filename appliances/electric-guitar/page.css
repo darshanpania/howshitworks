@@ -9,6 +9,11 @@
 .readout .trace svg { display: block; width: 100%; height: 30px; overflow: visible; }
 .readout .trace line { stroke: var(--line); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .readout .trace polyline { fill: none; stroke: var(--copper); stroke-width: 1.5; stroke-linejoin: round; vector-effect: non-scaling-stroke; }
+/* One fixed width, so the box does not change size with the scale label or run under the title. */
+@media (min-width: 801px) {
+  .readout { width: 250px; }
+  .brand:has(.readout) :is(.crumbs, h1) { max-width: calc(100% - 270px); }
+}
 @media (max-width: 800px) {
   .readout dd#r-note, .readout dd#r-pickup { min-width: 0; }
   .readout .trace dd { min-width: 64px; }
